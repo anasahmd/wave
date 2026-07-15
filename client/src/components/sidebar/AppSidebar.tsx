@@ -1,22 +1,21 @@
-import DatabaseSwitcherMenu from "./DatabaseSwitcherMenu"
+import { LogOut, Settings } from "lucide-react"
+import DatabaseSwitcherMenu from "@/components/sidebar/DatabaseSwitcherMenu"
+import AppSidebarFooter from "@/components/sidebar/AppSidebarFooter"
 import SchemaExplorer from "./SchemaExplorer"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarRail,
-} from "./ui/sidebar"
+} from "../ui/sidebar"
 
 const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
   databases: [
     {
       id: "db-ecommerce-prod-001",
@@ -119,7 +118,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SchemaExplorer schema={data.databases[0].schema} />
       </SidebarContent>
-      <SidebarFooter>{/* <NavUser user={data.user} /> */}</SidebarFooter>
+      <SidebarFooter>
+        <AppSidebarFooter user={data.user} />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

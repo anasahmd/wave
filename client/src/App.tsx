@@ -1,5 +1,5 @@
 import ChatArea from "@/components/ChatArea"
-import { AppSidebar } from "@/components/AppSidebar"
+import { AppSidebar } from "@/components/sidebar/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 
 export function App() {

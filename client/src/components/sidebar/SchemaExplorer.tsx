@@ -3,7 +3,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./ui/collapsible"
+} from "../ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,7 +13,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
-} from "./ui/sidebar"
+} from "../ui/sidebar"
 
 type Schema = Record<
   string,
