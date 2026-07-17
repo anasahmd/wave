@@ -9,3 +9,22 @@ export function generateToken(user) {
 		expiresIn: '7d',
 	});
 }
+
+// Verifies bearer token and attach user to req object
+export function authenticate(req, res, next) {
+	const header = req.headers.authorization;
+	if (!header?.startsWith('Bearer ')) {
+		return res.status(401).json({ error: 'Authentication required' });
+	}
+
+	try {
+		const token = header.split(' ')[1];
+		const payload = jwt.verify(token, JWT_SECRET);
+		console.log(payload);
+
+		req.user = { id: payload.id, email: payload.email };
+		next();
+	} catch {
+		return res.status(401).json({ error: 'Invalid or expired token' });
+	}
+}

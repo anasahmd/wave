@@ -1,18 +1,11 @@
-// ──────────────────────────────────────────
-// Read-only SQL validation using AST parsing
-// ──────────────────────────────────────────
-
 import nodeSqlParser from 'node-sql-parser';
 const { Parser } = nodeSqlParser;
 
 const parser = new Parser();
 const ALLOWED_TYPES = ['select'];
 
-/**
- * Validate that a SQL query is read-only (SELECT only).
- * Uses a proper SQL parser instead of regex to avoid false positives.
- * Returns { valid: true } or { valid: false, reason: string }.
- */
+// Validate that a SQL query is read-only (SELECT only)
+// Returns { valid: true } or { valid: false, reason: string }
 export function validateReadOnly(sql) {
 	let ast;
 
