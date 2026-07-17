@@ -1,4 +1,4 @@
-import { LogOut, Settings } from "lucide-react"
+import { ChevronsUpDown, LogOut, Settings, SettingsIcon } from "lucide-react"
 import DatabaseSwitcherMenu from "@/components/sidebar/DatabaseSwitcherMenu"
 import AppSidebarFooter from "@/components/sidebar/AppSidebarFooter"
 import SchemaExplorer from "./SchemaExplorer"
@@ -7,8 +7,11 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenuButton,
   SidebarRail,
 } from "../ui/sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Link } from "react-router-dom"
 
 const data = {
   user: {
@@ -110,6 +113,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = data.user
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
