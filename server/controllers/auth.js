@@ -60,7 +60,7 @@ authController.login = async (req, res) => {
 	}
 };
 
-export async function me(req, res) {
+authController.me = async (req, res) => {
 	const { id, email } = req.user;
 	const user = await User.findById(id).select('-password_hash');
 
@@ -76,7 +76,7 @@ export async function me(req, res) {
 			created_at: user.createdAt,
 		},
 	});
-}
+};
 
 authController.changePassword = async (req, res) => {
 	res.status(500).json({ error: 'Not implemented' });

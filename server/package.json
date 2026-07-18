@@ -19,6 +19,9 @@
 		"jsonwebtoken": "^9.0.3",
 		"langchain": "^1.5.3",
 		"mongoose": "^9.7.4",
+		"morgan": "^1.11.0",
+		"pg": "^8.22.0",
+		"typeorm": "^1.1.0",
 		"zod": "^4.4.3"
 	},
 	"keywords": [],

@@ -22,6 +22,19 @@ class DBManager {
 		let type;
 		if (uri.startsWith('postgres://') || uri.startsWith('postgresql://')) {
 			type = 'postgres';
+
+			// Suppress pg-connection-string security warning without affecting functionality
+			// by explicitly using 'verify-full' for aliases as recommended by the warning.
+			try {
+				const urlObj = new URL(uri);
+				const sslmode = urlObj.searchParams.get('sslmode');
+				if (['require', 'prefer', 'verify-ca'].includes(sslmode)) {
+					urlObj.searchParams.set('sslmode', 'verify-full');
+					uri = urlObj.toString();
+				}
+			} catch (err) {
+				// Ignore invalid URL parsing errors
+			}
 		} else if (uri.startsWith('mysql://')) {
 			type = 'mysql';
 		} else {

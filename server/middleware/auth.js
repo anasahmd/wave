@@ -20,7 +20,6 @@ export function authenticate(req, res, next) {
 	try {
 		const token = header.split(' ')[1];
 		const payload = jwt.verify(token, JWT_SECRET);
-		console.log(payload);
 
 		req.user = { id: payload.id, email: payload.email };
 		next();

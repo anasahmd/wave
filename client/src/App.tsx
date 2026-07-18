@@ -2,7 +2,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout"
 import ChatArea from "@/components/ChatArea"
 import { AppSidebar } from "@/components/sidebar/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 

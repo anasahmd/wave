@@ -1,10 +1,10 @@
 import Connection from '../models/Connection.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
-import dbManager from '../utils/dbManager.js';
+import dbManager from '../services/dbManager.js';
 
-const connectionController = {}
+const connectionController = {};
 
-connectionController.connect = (req, res) => {
+connectionController.connect = async (req, res) => {
 	try {
 		const { uri, name } = req.body;
 
@@ -44,17 +44,17 @@ connectionController.connect = (req, res) => {
 		console.error('Connection error:', error);
 		res.status(500).json({ error: error.message || 'Failed to connect' });
 	}
-}
+};
 
-connectionController.list = (req, res) => {
+connectionController.list = async (req, res) => {
 	const connections = await Connection.find({ user: req.user.id })
 		.select('name db_type createdAt')
 		.sort({ createdAt: -1 });
 
 	res.json(connections);
-}
+};
 
-connectionController.activate = (req, res) => {
+connectionController.activate = async (req, res) => {
 	try {
 		const { id } = req.params;
 		const connection = await Connection.findOne({ _id: id, user: req.user.id });
@@ -101,9 +101,9 @@ connectionController.activate = (req, res) => {
 			.status(500)
 			.json({ error: error.message || 'Failed to activate connection' });
 	}
-}
+};
 
-connectionController.disconnect = (req, res) => {
+connectionController.disconnect = async (req, res) => {
 	try {
 		const { id } = req.params;
 		await dbManager.disconnect({ userId: req.user.id, connectionId: id });
@@ -111,9 +111,9 @@ connectionController.disconnect = (req, res) => {
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
-}
+};
 
-connectionController.remove = (req, res) => {
+connectionController.remove = async (req, res) => {
 	try {
 		const { id } = req.params;
 		await dbManager.disconnect({ userId: req.user.id, connectionId: id });
@@ -122,6 +122,6 @@ connectionController.remove = (req, res) => {
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
-}
+};
 
 export default connectionController;
