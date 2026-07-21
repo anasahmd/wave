@@ -1,13 +1,13 @@
-import { useState } from "react"
+import { useContext, useState } from "react";
 import {
   ChevronsUpDown,
   Code2,
   LogOut,
   Settings2,
   Sparkles,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,26 +16,24 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import SettingsDialog from "@/components/SettingsDialog"
+} from "@/components/ui/sidebar";
+import SettingsDialog from "@/components/SettingsDialog";
+import { useAuth } from "@/context/AuthContext";
 
-export default function AppSidebar({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
+export default function AppSidebar() {
+  const { handleLogout, user } = useAuth();
+  const { isMobile } = useSidebar();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  if (!user) {
+    return <p>Loading...</p>;
   }
-}) {
-  const { isMobile } = useSidebar()
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   return (
     <>
@@ -49,8 +47,10 @@ export default function AppSidebar({
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
+                    <AvatarFallback className="rounded-lg">
+                      {user.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -99,7 +99,7 @@ export default function AppSidebar({
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut />
                 Log out
               </DropdownMenuItem>
@@ -114,5 +114,5 @@ export default function AppSidebar({
         user={user}
       />
     </>
-  )
+  );
 }

@@ -1,9 +1,15 @@
-import { Navigate, Outlet } from "react-router-dom"
-import AuthHeader from "../AuthHeader"
+import { Navigate, Outlet } from "react-router-dom";
+import AuthHeader from "../AuthHeader";
+import { useAuth } from "@/context/AuthContext";
+import { Spinner } from "../ui/spinner";
 
-export function AuthLayout({ user }: { user: any }) {
+export function AuthLayout() {
+  const { loading, user } = useAuth();
+
+  if (loading) return <Spinner />;
+
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -13,5 +19,5 @@ export function AuthLayout({ user }: { user: any }) {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

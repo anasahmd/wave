@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-// import { loginUser } from '@/store/authSlice';
-import { useDispatch } from "react-redux"
-import { loginSchema } from "@/validations/auth"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Controller, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { loginSchema } from "@/validations/auth";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@/context/AuthContext";
+import apiClient from "@/services/apiClient";
+import { AxiosError } from "axios";
 
 const Login = () => {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const { handleLogin } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -19,22 +19,40 @@ const Login = () => {
       email: "",
       password: "",
     },
-  })
+  });
 
-  const onSubmit = async (data) => {
-    // try {
-    // 	const user = await dispatch(
-    // 		loginUser({
-    // 			email: data.email,
-    // 			password: data.password,
-    // 		}),
-    // 	).unwrap();
-    // 	toast.success('Welcome back');
-    // 	navigate('/');
-    // } catch (exception) {
-    // 	toast.error(exception);
-    // }
-  }
+  const onSubmit = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    try {
+      const response = await apiClient.post("/auth/login", {
+        email,
+        password,
+      });
+      const user = response.data.user;
+      handleLogin(
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        response.data.token
+      );
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        if (error.response?.data.error) {
+          toast.error(error.response.data.error);
+        }
+        console.log(error);
+      } else {
+        console.log("An unexpected error occurred", error);
+      }
+    }
+  };
 
   return (
     <section className="my-8 flex w-full items-center justify-center py-8 text-start">
@@ -125,7 +143,7 @@ const Login = () => {
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-// import { registerUser } from "@/store/authSlice"
-import { useDispatch } from "react-redux"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
-import { registerSchema } from "@/validations/auth"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { registerSchema } from "@/validations/auth";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { useAuth } from "@/context/AuthContext";
+import apiClient from "@/services/apiClient";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const Register = () => {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const { handleLogin } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
@@ -21,23 +21,42 @@ const Register = () => {
       password: "",
       confirmPassword: "",
     },
-  })
+  });
 
-  const onSubmit = async (data) => {
-    // try {
-    //   const response = await dispatch(
-    //     registerUser({
-    //       name: data.name,
-    //       email: data.email,
-    //       password: data.password,
-    //     })
-    //   ).unwrap()
-    //   toast.success("Registration successfull")
-    //   navigate("/")
-    // } catch (exception) {
-    //   toast.error(exception)
-    // }
-  }
+  const onSubmit = async ({
+    email,
+    password,
+    name,
+  }: {
+    email: string;
+    password: string;
+    name: string;
+  }) => {
+    try {
+      // Api call
+      const response = await apiClient.post("/auth/register", {
+        email,
+        password,
+        name,
+      });
+      const user = response.data.user;
+      handleLogin(
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        response.data.token
+      );
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.error);
+        console.log(error);
+      } else {
+        console.log("An unexpected error occurred", error);
+      }
+    }
+  };
 
   return (
     <section className="my-8 flex w-full items-center justify-center py-8 text-start">
@@ -161,7 +180,7 @@ const Register = () => {
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Register
+export default Register;

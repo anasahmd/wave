@@ -1,17 +1,17 @@
-import { AuthLayout } from "@/components/layouts/AuthLayout"
-import ChatArea from "@/components/ChatArea"
-import { AppSidebar } from "@/components/sidebar/AppSidebar"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { Route, Routes } from "react-router-dom"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
+import { AuthLayout } from "@/components/layouts/AuthLayout";
+import ChatArea from "@/components/ChatArea";
+import { AppSidebar } from "@/components/sidebar/AppSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Route, Routes } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import PrivateRoute from "./components/PrivateRoute";
 
 export function App() {
-  const user = null
   return (
     <div>
       <Routes>
-        <Route element={<AuthLayout user={user} />}>
+        <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
@@ -19,15 +19,17 @@ export function App() {
         <Route
           path="/"
           element={
-            <SidebarProvider>
-              <ChatArea />
-              <AppSidebar />
-            </SidebarProvider>
+            <PrivateRoute>
+              <SidebarProvider>
+                <ChatArea />
+                <AppSidebar />
+              </SidebarProvider>
+            </PrivateRoute>
           }
         />
       </Routes>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
