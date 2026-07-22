@@ -1,5 +1,5 @@
 import { api } from "@/services/apiClient";
-import { type Connection } from "@/types";
+import { type Schema, type Connection } from "@/types";
 import {
   createContext,
   useContext,
@@ -14,6 +14,7 @@ interface ConnectionContextType {
   addConnection: (connection: Connection) => void;
   switchConnection: (id: string) => void;
   activeConnection: Connection | undefined;
+  activeSchema: Schema | undefined;
 }
 
 const ConnectionContext = createContext<ConnectionContextType | undefined>(
@@ -26,14 +27,28 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     Connection | undefined
   >(undefined);
 
+  const [activeSchema, setActiveSchema] = useState<Schema | undefined>(
+    undefined
+  );
+
   useEffect(() => {
     const fetchConnectionData = async () => {
       try {
         const connections = await api.listConnections();
-        console.log(connections);
-
         setConnections(connections);
-        setActiveConnection(connections[0]);
+
+        if (connections.length > 0) {
+          const active = connections.find((connection) => connection.is_active);
+          if (active) {
+            const response = await api.activateConnection(active?.id);
+            setActiveConnection(response.connection);
+            setActiveSchema(response.schema);
+          } else {
+            const response = await api.activateConnection(connections[0].id);
+            setActiveConnection(response.connection);
+            setActiveSchema(response.schema);
+          }
+        }
       } catch (error) {
         if (error instanceof Error) {
           toast.error(error.message);
@@ -59,6 +74,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       }
       const connectedDb = await api.activateConnection(id);
       setActiveConnection(connectedDb.connection);
+      setActiveSchema(connectedDb.schema);
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -72,7 +88,13 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
 
   return (
     <ConnectionContext
-      value={{ connections, addConnection, activeConnection, switchConnection }}
+      value={{
+        connections,
+        addConnection,
+        activeConnection,
+        switchConnection,
+        activeSchema,
+      }}
     >
       {children}
     </ConnectionContext>

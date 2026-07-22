@@ -21,6 +21,5 @@ export interface ConnectDbPayload {
 
 export interface ConnectionResponse {
   connection: Connection;
-  tables: string[];
   schema: Schema;
 }

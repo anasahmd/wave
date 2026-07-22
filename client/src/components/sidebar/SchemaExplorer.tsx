@@ -1,9 +1,9 @@
-import { ChevronRight } from "lucide-react"
+import { ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible"
+} from "../ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,18 +13,14 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
-} from "../ui/sidebar"
+} from "../ui/sidebar";
+import { useConnection } from "@/context/ConnectionContext";
 
-type Schema = Record<
-  string,
-  {
-    name: string
-    type: string
-    primaryKey: boolean
-  }[]
->
+export default function SchemaExplorer() {
+  const { activeSchema } = useConnection();
 
-export default function SchemaExplorer({ schema }: { schema: Schema }) {
+  if (!activeSchema) return null;
+
   return (
     <Collapsible className="rounded-md">
       <SidebarGroup>
@@ -40,7 +36,7 @@ export default function SchemaExplorer({ schema }: { schema: Schema }) {
         <CollapsibleContent>
           <SidebarGroupContent>
             <SidebarMenu>
-              {Object.entries(schema).map(([tableName, columns]) => (
+              {Object.entries(activeSchema).map(([tableName, columns]) => (
                 <SidebarMenuItem key={tableName}>
                   <Collapsible className="rounded-md data-open:bg-muted">
                     <CollapsibleTrigger
@@ -72,5 +68,5 @@ export default function SchemaExplorer({ schema }: { schema: Schema }) {
         </CollapsibleContent>
       </SidebarGroup>
     </Collapsible>
-  )
+  );
 }

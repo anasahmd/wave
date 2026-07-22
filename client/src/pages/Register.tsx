@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { registerSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { useAuth } from "@/context/AuthContext";
-import apiClient from "@/services/apiClient";
+import { api } from "@/services/apiClient";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
@@ -34,26 +34,23 @@ const Register = () => {
   }) => {
     try {
       // Api call
-      const response = await apiClient.post("/auth/register", {
-        email,
-        password,
-        name,
-      });
-      const user = response.data.user;
+      const { user, token } = await api.register({ email, password, name });
+
       handleLogin(
         {
           id: user.id,
           name: user.name,
           email: user.email,
         },
-        response.data.token
+        token
       );
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        toast.error(error.response?.data.error);
+      if (error instanceof Error) {
+        toast.error(error.message);
         console.log(error);
       } else {
-        console.log("An unexpected error occurred", error);
+        toast.error("An unexpected error occurred");
+        console.error("An unexpected error occurred", error);
       }
     }
   };

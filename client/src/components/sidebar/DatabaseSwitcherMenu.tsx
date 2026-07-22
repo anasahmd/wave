@@ -25,10 +25,6 @@ export default function DatabaseSwitcherMenu() {
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
 
-  if (!activeConnection) {
-    return null;
-  }
-
   return (
     <>
       <SidebarMenu>
@@ -45,10 +41,10 @@ export default function DatabaseSwitcherMenu() {
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">
-                      {activeConnection.name}
+                      {activeConnection?.name || "Wave"}
                     </span>
                     <span className="truncate text-xs">
-                      {activeConnection.db_type}
+                      {activeConnection?.db_type || "Add database"}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto" />
