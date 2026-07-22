@@ -47,9 +47,20 @@ connectionController.connect = async (req, res) => {
 };
 
 connectionController.list = async (req, res) => {
-	const connections = await Connection.find({ user: req.user.id })
+	let connections = await Connection.find({ user: req.user.id })
 		.select('name db_type createdAt')
 		.sort({ createdAt: -1 });
+
+	connections = connections.map((conn) => ({
+		id: conn._id,
+		name: conn.name,
+		db_type: conn.db_type,
+		createdAt: conn.createdAt,
+		is_active: dbManager.isConnected({
+			userId: req.user.id,
+			connectionId: conn._id.toString(),
+		}),
+	}));
 
 	res.json(connections);
 };
@@ -73,6 +84,7 @@ connectionController.activate = async (req, res) => {
 					id: connection._id,
 					name: connection.name,
 					db_type: connection.db_type,
+					is_active: true,
 				},
 				tables: Object.keys(schema),
 				schema,
@@ -91,6 +103,7 @@ connectionController.activate = async (req, res) => {
 				id: connection._id,
 				name: connection.name,
 				db_type: connection.db_type,
+				is_active: true,
 			},
 			tables: result.tables,
 			schema: result.schema,

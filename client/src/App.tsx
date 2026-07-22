@@ -6,6 +6,7 @@ import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
+import { ConnectionProvider } from "./context/ConnectionContext";
 
 export function App() {
   return (
@@ -20,10 +21,12 @@ export function App() {
           path="/"
           element={
             <PrivateRoute>
-              <SidebarProvider>
-                <ChatArea />
-                <AppSidebar />
-              </SidebarProvider>
+              <ConnectionProvider>
+                <SidebarProvider>
+                  <ChatArea />
+                  <AppSidebar />
+                </SidebarProvider>
+              </ConnectionProvider>
             </PrivateRoute>
           }
         />

@@ -8,6 +8,7 @@ import connectionRouter from './routes/connection.js';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
+import chatRouter from './routes/chat.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,7 +28,8 @@ var accessLogStream = fs.createWriteStream(
 app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use('/api/auth', authRouter);
-app.use('/api/connection', authenticate, connectionRouter);
+app.use('/api/connections', authenticate, connectionRouter);
+app.use('/api/auth/chats', authenticate, chatRouter);
 
 app.listen(PORT, () => {
 	console.log(`Server running on PORT: ${PORT}`);

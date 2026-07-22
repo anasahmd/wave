@@ -1,5 +1,84 @@
 import { DataSource } from 'typeorm';
 
+// Implement auto disconnect based on this
+// class DBManager {
+// 	constructor() {
+// 		this.pool = new Map();
+// 		this.IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+// 		this.SWEEP_INTERVAL_MS = 5 * 60 * 1000;  // check every 5 minutes
+
+// 		this.#startSweeper();
+// 	}
+
+// 	#key({ userId, connectionId }) {
+// 		return `${userId}-${connectionId}`;
+// 	}
+
+// 	async connect({ userId, connectionId, uri }) {
+// 		const key = this.#key({ userId, connectionId });
+// 		await this.disconnect({ userId, connectionId });
+
+// 		// ... existing type detection + DataSource creation unchanged ...
+
+// 		await dataSource.initialize();
+// 		const schema = await this.#extractSchema(dataSource, type);
+
+// 		this.pool.set(key, {
+// 			dataSource,
+// 			dbType: type,
+// 			schema,
+// 			lastUsedAt: Date.now(),
+// 		});
+
+// 		return { type, tables: Object.keys(schema), schema };
+// 	}
+
+// 	// Call this from every getter so "activity" resets the idle clock
+// 	#touch(key) {
+// 		const entry = this.pool.get(key);
+// 		if (entry) entry.lastUsedAt = Date.now();
+// 	}
+
+// 	getDataSource({ userId, connectionId }) {
+// 		const key = this.#key({ userId, connectionId });
+// 		const entry = this.pool.get(key);
+// 		if (!entry) throw new Error('No active connection. Please connect first.');
+// 		this.#touch(key);
+// 		return entry.dataSource;
+// 	}
+
+// 	// getSchema / getType / isConnected: same pattern, add this.#touch(key)
+
+// 	#startSweeper() {
+// 		this.sweepInterval = setInterval(() => {
+// 			const now = Date.now();
+// 			for (const [key, entry] of this.pool.entries()) {
+// 				if (now - entry.lastUsedAt > this.IDLE_TIMEOUT_MS) {
+// 					const [userId, connectionId] = key.split('-'); // see note below
+// 					this.disconnect({ userId, connectionId }).catch((err) =>
+// 						console.error(`Failed to clean up idle connection ${key}:`, err)
+// 					);
+// 				}
+// 			}
+// 		}, this.SWEEP_INTERVAL_MS);
+
+// 		// Don't let this timer keep the process alive on its own
+// 		this.sweepInterval.unref?.();
+// 	}
+
+// 	// Also clean up on process shutdown, so you don't leave dangling
+// 	// connections on the DB server when you redeploy
+// 	async shutdown() {
+// 		clearInterval(this.sweepInterval);
+// 		for (const key of this.pool.keys()) {
+// 			const [userId, connectionId] = key.split('-');
+// 			await this.disconnect({ userId, connectionId });
+// 		}
+// 	}
+
+// 	// ... rest unchanged ...
+// }
+
 class DBManager {
 	// The pool is a Map (key-value store) that holds all active connections
 	// Key:   "userId-connectionId" (e.g., "abc123-def456")
@@ -23,8 +102,7 @@ class DBManager {
 		if (uri.startsWith('postgres://') || uri.startsWith('postgresql://')) {
 			type = 'postgres';
 
-			// Suppress pg-connection-string security warning without affecting functionality
-			// by explicitly using 'verify-full' for aliases as recommended by the warning.
+			// Suppress pg-connection-string security warning
 			try {
 				const urlObj = new URL(uri);
 				const sslmode = urlObj.searchParams.get('sslmode');

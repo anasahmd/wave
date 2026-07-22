@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Plus, Waves } from "lucide-react"
+import { ChevronsUpDown, Plus, Waves } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,31 +7,26 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useState } from "react"
-import AddDatabase from "../AddDatabaseDialog"
-import AddDatabaseDialog from "../AddDatabaseDialog"
-import { Button } from "@base-ui/react"
+} from "@/components/ui/sidebar";
+import { useState } from "react";
+import AddDatabaseDialog from "../AddDatabaseDialog";
+import { useConnection } from "@/context/ConnectionContext";
 
-export default function DatabaseSwitcherMenu({
-  databases,
-}: {
-  databases: {
-    name: string
-    db_type: string
-  }[]
-}) {
-  const { isMobile } = useSidebar()
-  const [activeDatabase, setActiveDatabase] = useState(databases[0])
-  const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false)
-  if (!activeDatabase) {
-    return null
+export default function DatabaseSwitcherMenu() {
+  const { isMobile } = useSidebar();
+
+  const { connections, activeConnection, switchConnection } = useConnection();
+
+  const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
+
+  if (!activeConnection) {
+    return null;
   }
 
   return (
@@ -50,10 +45,10 @@ export default function DatabaseSwitcherMenu({
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">
-                      {activeDatabase.name}
+                      {activeConnection.name}
                     </span>
                     <span className="truncate text-xs">
-                      {activeDatabase.db_type}
+                      {activeConnection.db_type}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto" />
@@ -70,13 +65,13 @@ export default function DatabaseSwitcherMenu({
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
                   Databases
                 </DropdownMenuLabel>
-                {databases.map((database) => (
+                {connections.map((connection) => (
                   <DropdownMenuItem
-                    key={database.name}
-                    onClick={() => setActiveDatabase(database)}
+                    key={connection.id}
+                    onClick={() => switchConnection(connection.id)}
                     className="gap-2 p-2"
                   >
-                    {database.name}
+                    {connection.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuGroup>
@@ -101,5 +96,5 @@ export default function DatabaseSwitcherMenu({
         onOpenChange={setIsAddDatabaseOpen}
       />
     </>
-  )
+  );
 }

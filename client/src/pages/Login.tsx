@@ -7,8 +7,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/context/AuthContext";
-import apiClient from "@/services/apiClient";
-import { AxiosError } from "axios";
+import { api } from "@/services/apiClient";
 
 const Login = () => {
   const { handleLogin } = useAuth();
@@ -29,27 +28,23 @@ const Login = () => {
     password: string;
   }) => {
     try {
-      const response = await apiClient.post("/auth/login", {
-        email,
-        password,
-      });
-      const user = response.data.user;
+      const { token, user } = await api.login({ email, password });
+
       handleLogin(
         {
           id: user.id,
           name: user.name,
           email: user.email,
         },
-        response.data.token
+        token
       );
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        if (error.response?.data.error) {
-          toast.error(error.response.data.error);
-        }
+      if (error instanceof Error) {
+        toast.error(error.message);
         console.log(error);
       } else {
-        console.log("An unexpected error occurred", error);
+        toast.error("An unexpected error occurred");
+        console.error("An unexpected error occurred", error);
       }
     }
   };

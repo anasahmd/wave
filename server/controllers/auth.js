@@ -49,7 +49,7 @@ authController.login = async (req, res) => {
 
 		const token = generateToken(user);
 
-		res.status(201).json({
+		res.status(200).json({
 			token,
 			user: { id: user._id, email: user.email, name: user.name },
 		});
@@ -61,21 +61,25 @@ authController.login = async (req, res) => {
 };
 
 authController.me = async (req, res) => {
-	const { id, email } = req.user;
-	const user = await User.findById(id).select('-password_hash');
+	try {
+		const { id } = req.user;
+		const user = await User.findById(id).select('-password_hash');
 
-	if (!user) {
-		return res.status(404).json({ error: 'User not found' });
-	}
+		if (!user) {
+			return res.status(404).json({ error: 'User not found' });
+		}
 
-	res.json({
-		user: {
+		res.json({
 			id: user._id,
 			email: user.email,
 			name: user.name,
 			created_at: user.createdAt,
-		},
-	});
+		});
+	} catch (e) {
+		console.log(e);
+
+		res.status(500).json({ error: 'Failed to fetch user data' });
+	}
 };
 
 authController.changePassword = async (req, res) => {

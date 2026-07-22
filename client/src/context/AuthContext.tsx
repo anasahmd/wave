@@ -3,8 +3,7 @@ import authReducer, {
   type AuthState,
   type User,
 } from "@/reducers/auth-reducer";
-import apiClient from "@/services/apiClient";
-import { AxiosError } from "axios";
+import { api } from "@/services/apiClient";
 import {
   createContext,
   useContext,
@@ -42,22 +41,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       try {
-        const response = await apiClient.get("/auth/me");
-        if (response.data?.user) {
-          dispatch({ type: "LOGIN", payload: response.data.user });
-          navigate("/");
-        }
+        const user = await api.me();
+        dispatch({ type: "LOGIN", payload: user });
       } catch (error: unknown) {
-        if (error instanceof AxiosError && error.response?.status === 401) {
-          dispatch({ type: "LOGOUT" });
-          localStorage.removeItem("wave_token");
-          navigate("/login");
-        }
+        console.log("Authentication check failed:", error);
       } finally {
         dispatch({ type: "SET_LOADING", payload: false });
       }
     };
     checkAuth();
+  }, []);
+
+  // Handles auth:unauthorized event broadcasted from apiClient
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.removeItem("wave_token");
+      dispatch({ type: "LOGOUT" });
+      navigate("/login");
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
   }, []);
 
   const handleLogin = (user: User, token: string) => {
