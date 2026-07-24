@@ -45,8 +45,11 @@ const threadSchema = new mongoose.Schema(
 threadSchema.set('toJSON', {
 	transform: (document, returnedObject) => {
 		returnedObject.id = returnedObject._id.toString();
+		returnedObject.created_at = returnedObject.createdAt;
+
 		delete returnedObject._id;
 		delete returnedObject.__v;
+		delete returnedObject.createdAt;
 	},
 });
 

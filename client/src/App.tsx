@@ -6,7 +6,8 @@ import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
-import { ConnectionProvider } from "./context/ConnectionContext";
+import { ConnectionProvider } from "./providers/ConnectionProvider";
+import ChatProvider from "./providers/ChatProvider";
 
 export function App() {
   return (
@@ -22,10 +23,12 @@ export function App() {
           element={
             <PrivateRoute>
               <ConnectionProvider>
-                <SidebarProvider>
-                  <ChatArea />
-                  <AppSidebar />
-                </SidebarProvider>
+                <ChatProvider>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <ChatArea />
+                  </SidebarProvider>
+                </ChatProvider>
               </ConnectionProvider>
             </PrivateRoute>
           }

@@ -5,7 +5,7 @@ export interface Connection {
   is_active: boolean;
 }
 
-interface Column {
+export interface Column {
   name: string;
   type: string;
   primaryKey: boolean;
@@ -22,4 +22,12 @@ export interface ConnectDbPayload {
 export interface ConnectionResponse {
   connection: Connection;
   schema: Schema;
+}
+
+export interface ConnectionContextType {
+  connections: Connection[];
+  addConnection: (response: ConnectionResponse) => void;
+  switchConnection: (id: string) => void;
+  activeConnection: Connection | undefined;
+  activeSchema: Schema | undefined;
 }

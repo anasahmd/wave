@@ -6,11 +6,11 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "@/components/theme-provider.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
-import { AuthProvider } from "./context/AuthContext.tsx";
+import { AuthProvider } from "./providers/AuthProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="light" storageKey="wave-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="wave-ui-theme">
       <Toaster position="bottom-center" />
       <BrowserRouter>
         <AuthProvider>

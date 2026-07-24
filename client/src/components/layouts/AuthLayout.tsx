@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import AuthHeader from "../AuthHeader";
-import { useAuth } from "@/context/AuthContext";
 import { Spinner } from "../ui/spinner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function AuthLayout() {
   const { loading, user } = useAuth();

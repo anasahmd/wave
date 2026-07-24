@@ -29,7 +29,7 @@ app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/connections', authenticate, connectionRouter);
-app.use('/api/auth/chats', authenticate, chatRouter);
+app.use('/api/chats', authenticate, chatRouter);
 
 app.listen(PORT, () => {
 	console.log(`Server running on PORT: ${PORT}`);

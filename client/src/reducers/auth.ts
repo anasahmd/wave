@@ -1,25 +1,4 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-export interface AuthState {
-  isLoggedIn: boolean;
-  user: User | null;
-  loading: boolean;
-}
-
-export type AuthAction =
-  | {
-      type: "LOGIN";
-      payload: { id: string; email: string; name: string };
-    }
-  | { type: "LOGOUT" }
-  | {
-      type: "SET_LOADING";
-      payload: boolean;
-    };
+import type { AuthAction, AuthState } from "@/types";
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {

@@ -5,11 +5,12 @@ import type {
   ConnectionResponse,
   LoginPayload,
   RegisterPayload,
+  Thread,
   User,
 } from "@/types";
 import axios from "axios";
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
   timeout: 10000, // 10 seconds timeout
   headers: {
@@ -69,7 +70,8 @@ export const api = {
   activateConnection: (id: string): Promise<ConnectionResponse> =>
     apiClient.post(`/connections/${id}/activate`),
 
-  disconnectDb: (id: string) => apiClient.post(`/connections/${id}/disconnect`),
+  disconnectDb: (id: string): Promise<Connection> =>
+    apiClient.post(`/connections/${id}/disconnect`),
   removeConnection: (id: string) => apiClient.delete(`/connections/${id}`),
 
   // Chat
@@ -83,7 +85,7 @@ export const api = {
     threadId: string;
   }) => apiClient.post("/chats", { message, connectionId, threadId }),
 
-  getThreads: (connectionId: string) =>
+  getThreads: (connectionId: string): Promise<Thread[]> =>
     apiClient.get(`/chats/threads/${connectionId}`),
 
   getMessages: (threadId: string) =>
@@ -92,5 +94,3 @@ export const api = {
   deleteThread: (threadId: string) =>
     apiClient.delete(`/chats/threads/${threadId}`),
 };
-
-export default apiClient;

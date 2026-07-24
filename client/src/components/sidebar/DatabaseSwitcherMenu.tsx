@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useState } from "react";
 import AddDatabaseDialog from "../AddDatabaseDialog";
-import { useConnection } from "@/context/ConnectionContext";
+import { useConnection } from "@/providers/ConnectionProvider";
 
 export default function DatabaseSwitcherMenu() {
   const { isMobile } = useSidebar();

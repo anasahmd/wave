@@ -5,10 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { registerSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { useAuth } from "@/context/AuthContext";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
+import { useAuth } from "@/providers/AuthProvider";
 
 const Register = () => {
   const { handleLogin } = useAuth();

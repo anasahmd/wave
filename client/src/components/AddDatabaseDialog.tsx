@@ -13,9 +13,9 @@ import { Field, FieldError, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { addDatabaseSchema } from "@/validations/database";
-import { useConnection } from "@/context/ConnectionContext";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
+import { useConnection } from "@/providers/ConnectionProvider";
 
 interface AddDatabaseDialogProps {
   open: boolean;
@@ -39,8 +39,9 @@ export default function AddDatabaseDialog({
   const onSubmit = async ({ name, uri }: { name: string; uri: string }) => {
     try {
       const response = await api.connectDb({ name, uri });
-      addConnection(response.connection);
+      addConnection(response);
       onOpenChange(false);
+      form.reset({ name: "", uri: "" });
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);

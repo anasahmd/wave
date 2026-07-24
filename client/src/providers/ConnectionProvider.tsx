@@ -1,25 +1,8 @@
+import ConnectionContext from "@/contexts/ConnectionContext";
 import { api } from "@/services/apiClient";
-import { type Schema, type Connection } from "@/types";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { type Schema, type Connection, type ConnectionResponse } from "@/types";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-
-interface ConnectionContextType {
-  connections: Connection[];
-  addConnection: (connection: Connection) => void;
-  switchConnection: (id: string) => void;
-  activeConnection: Connection | undefined;
-  activeSchema: Schema | undefined;
-}
-
-const ConnectionContext = createContext<ConnectionContextType | undefined>(
-  undefined
-);
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -63,8 +46,27 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     fetchConnectionData();
   }, []);
 
-  const addConnection = (connection: Connection) => {
-    setConnections((connections) => [...connections, connection]);
+  const addConnection = async (response: ConnectionResponse) => {
+    setConnections((connections) => [...connections, response.connection]);
+    try {
+      if (activeConnection) {
+        const disconnectedDb = await api.disconnectDb(activeConnection.id);
+        const updatedConnections = connections.map((connection) =>
+          connection.id === disconnectedDb.id ? disconnectedDb : connection
+        );
+        setConnections(updatedConnections);
+      }
+      setActiveConnection(response.connection);
+      setActiveSchema(response.schema);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+        console.log(error);
+      } else {
+        toast.error("An unexpected error occurred");
+        console.error("An unexpected error occurred", error);
+      }
+    }
   };
 
   const switchConnection = async (id: string) => {

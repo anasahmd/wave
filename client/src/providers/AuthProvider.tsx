@@ -1,16 +1,8 @@
-import authReducer, {
-  type AuthAction,
-  type AuthState,
-  type User,
-} from "@/reducers/auth-reducer";
+import AuthContext from "@/contexts/AuthContext";
+import authReducer from "@/reducers/auth";
 import { api } from "@/services/apiClient";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useReducer,
-  type ReactNode,
-} from "react";
+import type { User } from "@/types";
+import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -19,15 +11,6 @@ const initialState = {
   user: null,
   loading: true,
 };
-
-interface AuthContextType extends AuthState {
-  handleLogin: (user: User, token: string) => void;
-  handleLogout: () => void;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);

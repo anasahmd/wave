@@ -1,6 +1,5 @@
 import DatabaseSwitcherMenu from "@/components/sidebar/DatabaseSwitcherMenu";
 import AppSidebarFooter from "@/components/sidebar/AppSidebarFooter";
-import SchemaExplorer from "./SchemaExplorer";
 import {
   Sidebar,
   SidebarContent,
@@ -8,6 +7,8 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "../ui/sidebar";
+import SchemaTable from "./SchemaTable";
+import ChatList from "./ChatList";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -16,7 +17,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <DatabaseSwitcherMenu />
       </SidebarHeader>
       <SidebarContent>
-        <SchemaExplorer />
+        <SchemaTable />
+        <ChatList />
       </SidebarContent>
       <SidebarFooter>
         <AppSidebarFooter />

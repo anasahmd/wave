@@ -36,8 +36,8 @@ connectionController.connect = async (req, res) => {
 				id: connection._id,
 				name: connection.name,
 				db_type: connection.db_type,
+				is_active: true,
 			},
-			tables: result.tables,
 			schema: result.schema,
 		});
 	} catch (error) {
@@ -86,7 +86,6 @@ connectionController.activate = async (req, res) => {
 					db_type: connection.db_type,
 					is_active: true,
 				},
-				tables: Object.keys(schema),
 				schema,
 			});
 		}
@@ -105,7 +104,6 @@ connectionController.activate = async (req, res) => {
 				db_type: connection.db_type,
 				is_active: true,
 			},
-			tables: result.tables,
 			schema: result.schema,
 		});
 	} catch (error) {
@@ -119,8 +117,17 @@ connectionController.activate = async (req, res) => {
 connectionController.disconnect = async (req, res) => {
 	try {
 		const { id } = req.params;
+		const connection = await Connection.findById(id);
+		if (!connection) {
+			return res.status(404).json({ error: 'Connection not found' });
+		}
 		await dbManager.disconnect({ userId: req.user.id, connectionId: id });
-		res.json({ message: 'Disconnected' });
+		res.json({
+			id: connection._id,
+			name: connection.name,
+			db_type: connection.db_type,
+			is_active: false,
+		});
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
@@ -130,8 +137,14 @@ connectionController.remove = async (req, res) => {
 	try {
 		const { id } = req.params;
 		await dbManager.disconnect({ userId: req.user.id, connectionId: id });
-		await Connection.findOneAndDelete({ _id: id, user: req.user.id });
-		res.json({ message: 'Connection removed' });
+		const deletedConnection = await Connection.findOneAndDelete({
+			_id: id,
+			user: req.user.id,
+		});
+		if (!deletedConnection) {
+			return res.status(404).json({ error: 'Connection not found' });
+		}
+		res.json(deletedConnection);
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}

@@ -6,8 +6,8 @@ import { loginSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/context/AuthContext";
 import { api } from "@/services/apiClient";
+import { useAuth } from "@/providers/AuthProvider";
 
 const Login = () => {
   const { handleLogin } = useAuth();
