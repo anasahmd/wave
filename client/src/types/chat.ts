@@ -5,10 +5,11 @@ export interface Thread {
   created_at: string;
   updated_at?: string;
 }
+
 export interface Message {
   id: string;
-  thread_id: string;
   role: "user" | "assistant";
+  sql_query: string | null;
   content: string;
   created_at: string;
 }
@@ -35,4 +36,6 @@ export type ChatAction =
   | { type: "SET_STATUS"; payload: "idle" | "loading" | "sending" | "error" }
   | { type: "RESET_CHAT" };
 
-export interface ChatContextType extends ChatState {}
+export interface ChatContextType extends ChatState {
+  setActiveThread: (threadId: string) => void;
+}

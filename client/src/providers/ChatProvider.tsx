@@ -21,15 +21,35 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       if (activeConnection) {
         try {
           const threads = await api.getThreads(activeConnection.id);
-          console.log(threads);
-
           dispatch({ type: "SET_THREADS", payload: threads });
-        } catch (error) {}
+        } catch (error) {
+          console.log(error);
+        }
       }
     };
 
     getThreads();
   }, [activeConnection]);
+
+  useEffect(() => {
+    const getMessages = async () => {
+      if (state.activeThreadId) {
+        try {
+          const chats = await api.getMessages(state.activeThreadId);
+          console.log(chats);
+
+          dispatch({ type: "SET_MESSAGES", payload: chats });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+    getMessages();
+  }, [state.activeThreadId]);
+
+  const setActiveThread = async (threadId: string) => {
+    dispatch({ type: "SET_ACTIVE_THREAD", payload: threadId });
+  };
 
   return (
     <ChatContext
@@ -38,6 +58,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         activeThreadId: state.activeThreadId,
         messages: state.messages,
         status: state.status,
+        setActiveThread,
       }}
     >
       {children}

@@ -73,7 +73,11 @@ chatController.getThreads = async (req, res) => {
 };
 
 chatController.getMessages = async (req, res) => {
-	res.status(404).json({ error: 'Not implemented' });
+	const { threadId } = req.params;
+	const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
+	if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+	res.json(thread.messages);
 };
 
 chatController.deleteThread = async (req, res) => {

@@ -2,6 +2,9 @@ import {
   ArrowUpRight,
   Link,
   MoreHorizontal,
+  Pen,
+  Pencil,
+  Star,
   StarOff,
   Trash2,
 } from "lucide-react";
@@ -25,14 +28,15 @@ import { useChat } from "@/providers/ChatProvider";
 
 export default function ChatList() {
   const isMobile = useIsMobile();
-  const { threads } = useChat();
+  const { threads, setActiveThread } = useChat();
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Chats</SidebarGroupLabel>
+      <SidebarGroupLabel>Recents</SidebarGroupLabel>
       <SidebarMenu>
         {threads.map((thread) => (
           <SidebarMenuItem key={thread.id}>
             <SidebarMenuButton
+              onClick={() => setActiveThread(thread.id)}
               render={
                 <SidebarMenuButton title={thread.title}>
                   <span>{thread.title}</span>
@@ -54,17 +58,12 @@ export default function ChatList() {
                 align={isMobile ? "end" : "start"}
               >
                 <DropdownMenuItem>
-                  <StarOff className="text-muted-foreground" />
-                  <span>Remove from Favorites</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link className="text-muted-foreground" />
-                  <span>Copy Link</span>
+                  <Star className="text-muted-foreground" />
+                  <span>Star</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <ArrowUpRight className="text-muted-foreground" />
-                  <span>Open in New Tab</span>
+                  <Pencil className="text-muted-foreground" />
+                  <span>Rename</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
@@ -75,12 +74,12 @@ export default function ChatList() {
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
+        {/* <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <MoreHorizontal />
             <span>More</span>
           </SidebarMenuButton>
-        </SidebarMenuItem>
+        </SidebarMenuItem> */}
       </SidebarMenu>
     </SidebarGroup>
   );

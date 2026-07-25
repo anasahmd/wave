@@ -1,10 +1,16 @@
 import { Button } from "@base-ui/react";
 import { Textarea } from "./ui/textarea";
 import { ArrowUp } from "lucide-react";
+import { useState } from "react";
 
 export default function InputBar() {
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setMessage(e.target.value);
+  };
   return (
-    <form className="relative flex w-full items-center rounded-2xl border border-input bg-background px-4 focus-within:ring-2 focus-within:ring-accent">
+    <form className="flex w-full items-center rounded-2xl border border-input bg-background px-4 focus-within:ring-2 focus-within:ring-accent">
       {/* <textarea
           ref={inputRef}
           id="chat-input"
@@ -24,8 +30,10 @@ export default function InputBar() {
         /> */}
       <Textarea
         placeholder="Ask anything or generate SQL..."
-        className="my-auto w-full resize-none border-0 bg-transparent p-2 shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
+        className="my-auto w-full resize-none border-0 bg-transparent py-5 shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
         rows={1}
+        value={message}
+        onChange={handleChange}
       />
       {/* <button
           id="send-btn"

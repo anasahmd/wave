@@ -46,10 +46,24 @@ threadSchema.set('toJSON', {
 	transform: (document, returnedObject) => {
 		returnedObject.id = returnedObject._id.toString();
 		returnedObject.created_at = returnedObject.createdAt;
+		returnedObject.updated_at = returnedObject.updatedAt;
 
 		delete returnedObject._id;
 		delete returnedObject.__v;
 		delete returnedObject.createdAt;
+		delete returnedObject.updatedAt;
+	},
+});
+
+messageSchema.set('toJSON', {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString();
+		returnedObject.created_at = returnedObject.createdAt;
+
+		delete returnedObject._id;
+		delete returnedObject.__v;
+		delete returnedObject.createdAt;
+		delete returnedObject.updatedAt;
 	},
 });
 

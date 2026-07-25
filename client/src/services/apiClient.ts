@@ -4,6 +4,7 @@ import type {
   Connection,
   ConnectionResponse,
   LoginPayload,
+  Message,
   RegisterPayload,
   Thread,
   User,
@@ -88,7 +89,7 @@ export const api = {
   getThreads: (connectionId: string): Promise<Thread[]> =>
     apiClient.get(`/chats/threads/${connectionId}`),
 
-  getMessages: (threadId: string) =>
+  getMessages: (threadId: string): Promise<Message[]> =>
     apiClient.get(`/chats/messages/${threadId}`),
 
   deleteThread: (threadId: string) =>

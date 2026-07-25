@@ -1,3 +1,4 @@
+import "@fontsource/geist/latin.css";
 import "./index.css";
 import App from "./App.tsx";
 
