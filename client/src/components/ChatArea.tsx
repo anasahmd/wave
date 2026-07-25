@@ -8,8 +8,11 @@ export default function ChatArea() {
       <ScrollArea className="min-h-0 flex-1">
         <MessageList />
       </ScrollArea>
-      <div className="sticky bottom-0 bg-background pt-4 pb-6">
+      <div className="sticky bottom-0 bg-background pt-4">
         <InputBar />
+        <p className="my-3 text-center text-xs">
+          Wave is AI and can make mistakes. Please double-check queries.
+        </p>
       </div>
     </div>
   );

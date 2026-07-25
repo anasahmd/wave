@@ -9,6 +9,7 @@ import {
 } from "../ui/sidebar";
 import SchemaTable from "./SchemaTable";
 import ThreadList from "./ThreadList";
+import NewChat from "./NewChat";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -18,6 +19,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SchemaTable />
+        <NewChat />
         <ThreadList />
       </SidebarContent>
       <SidebarFooter>

@@ -6,7 +6,8 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return { ...state, threads: action.payload };
     }
     case "SET_ACTIVE_THREAD": {
-      return { ...state, activeThreadId: action.payload };
+      const messages = action.payload ? state.messages : [];
+      return { ...state, activeThreadId: action.payload, messages };
     }
     case "SET_MESSAGES": {
       return { ...state, messages: action.payload };
