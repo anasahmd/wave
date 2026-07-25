@@ -6,7 +6,6 @@ import { Controller, useForm } from "react-hook-form";
 import { registerSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { api } from "@/services/apiClient";
-import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
 
 const Register = () => {
@@ -43,14 +42,8 @@ const Register = () => {
         },
         token
       );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-        console.log(error);
-      } else {
-        toast.error("An unexpected error occurred");
-        console.error("An unexpected error occurred", error);
-      }
+    } catch {
+      // error toasted by interceptor
     }
   };
 

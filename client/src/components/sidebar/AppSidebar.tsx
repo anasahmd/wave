@@ -8,7 +8,7 @@ import {
   SidebarRail,
 } from "../ui/sidebar";
 import SchemaTable from "./SchemaTable";
-import ChatList from "./ChatList";
+import ThreadList from "./ThreadList";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -18,7 +18,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SchemaTable />
-        <ChatList />
+        <ThreadList />
       </SidebarContent>
       <SidebarFooter>
         <AppSidebarFooter />

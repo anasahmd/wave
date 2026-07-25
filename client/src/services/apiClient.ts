@@ -10,6 +10,7 @@ import type {
   User,
 } from "@/types";
 import axios from "axios";
+import { toast } from "sonner";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -36,6 +37,7 @@ apiClient.interceptors.response.use(
     }
     const message =
       error.response?.data?.error || error.message || "Request failed";
+    toast.error(message);
     return Promise.reject(new Error(message));
   }
 );
@@ -83,8 +85,9 @@ export const api = {
   }: {
     message: string;
     connectionId: string;
-    threadId: string;
-  }) => apiClient.post("/chats", { message, connectionId, threadId }),
+    threadId: string | null;
+  }): Promise<{ message: Message; thread: Thread }> =>
+    apiClient.post("/chats", { message, connectionId, threadId }),
 
   getThreads: (connectionId: string): Promise<Thread[]> =>
     apiClient.get(`/chats/threads/${connectionId}`),
@@ -92,6 +95,6 @@ export const api = {
   getMessages: (threadId: string): Promise<Message[]> =>
     apiClient.get(`/chats/messages/${threadId}`),
 
-  deleteThread: (threadId: string) =>
+  deleteThread: (threadId: string): Promise<Thread> =>
     apiClient.delete(`/chats/threads/${threadId}`),
 };

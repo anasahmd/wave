@@ -14,7 +14,6 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { addDatabaseSchema } from "@/validations/database";
 import { api } from "@/services/apiClient";
-import { toast } from "sonner";
 import { useConnection } from "@/providers/ConnectionProvider";
 
 interface AddDatabaseDialogProps {
@@ -42,14 +41,8 @@ export default function AddDatabaseDialog({
       addConnection(response);
       onOpenChange(false);
       form.reset({ name: "", uri: "" });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-        console.log(error);
-      } else {
-        toast.error("An unexpected error occurred");
-        console.log("An unexpected error occurred", error);
-      }
+    } catch {
+      // error toasted by interceptor
     }
   };
 

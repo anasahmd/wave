@@ -38,4 +38,7 @@ export type ChatAction =
 
 export interface ChatContextType extends ChatState {
   setActiveThread: (threadId: string) => void;
+  addMessage: (message: Message) => void;
+  deleteThread: (threadId: string) => void;
+  addThread: (thread: Thread) => void;
 }

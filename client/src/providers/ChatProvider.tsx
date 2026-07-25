@@ -1,7 +1,7 @@
 import ChatContext from "@/contexts/ChatContext";
 import chatReducer from "@/reducers/chat";
 import { api } from "@/services/apiClient";
-import type { ChatState } from "@/types";
+import type { ChatState, Message, Thread } from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useConnection } from "./ConnectionProvider";
 
@@ -36,8 +36,6 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       if (state.activeThreadId) {
         try {
           const chats = await api.getMessages(state.activeThreadId);
-          console.log(chats);
-
           dispatch({ type: "SET_MESSAGES", payload: chats });
         } catch (error) {
           console.log(error);
@@ -51,6 +49,18 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_ACTIVE_THREAD", payload: threadId });
   };
 
+  const addMessage = (message: Message) => {
+    dispatch({ type: "ADD_MESSAGE", payload: message });
+  };
+
+  const deleteThread = (threadId: string) => {
+    dispatch({ type: "DELETE_THREAD", payload: threadId });
+  };
+
+  const addThread = (thread: Thread) => {
+    dispatch({ type: "ADD_THREAD", payload: thread });
+  };
+
   return (
     <ChatContext
       value={{
@@ -59,6 +69,9 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         messages: state.messages,
         status: state.status,
         setActiveThread,
+        addMessage,
+        deleteThread,
+        addThread,
       }}
     >
       {children}

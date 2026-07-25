@@ -1,112 +1,38 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Bubble,
-  BubbleContent,
-  BubbleGroup,
-  BubbleReactions,
-} from "@/components/ui/bubble";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageFooter,
-} from "@/components/ui/message";
-import { useChat } from "@/providers/ChatProvider";
+import { useEffect, useRef } from "react";
 import MarkDown from "react-markdown";
+import { Message, MessageContent } from "@/components/ui/message";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import { useChat } from "@/providers/ChatProvider";
 
 export default function MessageList() {
   const { messages } = useChat();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <>
+    <div className="flex min-h-full flex-col justify-end">
       {messages.map((message) => (
         <Message
           align={message.role === "user" ? "end" : "start"}
-          className="mb-6"
+          className="my-10"
+          key={message.id}
         >
-          {/* <MessageAvatar>
-            <Avatar>
-              <AvatarImage src="/avatars/10.png" alt="@me" />
-              <AvatarFallback>ME</AvatarFallback>
-            </Avatar>
-          </MessageAvatar> */}
           <MessageContent>
-            <Bubble variant={message.role === "user" ? "default" : "muted"}>
-              <BubbleContent>
+            <Bubble variant={message.role === "user" ? "default" : "ghost"}>
+              <BubbleContent
+                className={message.role === "assistant" ? "w-full" : ""}
+              >
                 <MarkDown>{message.content}</MarkDown>
               </BubbleContent>
+              {/* {message.role === "assistant" && <span>{message.sql_query}</span>} */}
             </Bubble>
           </MessageContent>
         </Message>
       ))}
-
-      {/* <Message align="end">
-          <MessageAvatar>
-            <Avatar>
-              <AvatarImage src="/avatars/10.png" alt="@me" />
-              <AvatarFallback>ME</AvatarFallback>
-            </Avatar>
-          </MessageAvatar>
-          <MessageContent>
-            <Bubble>
-              <BubbleContent>Deploying to prod real quick.</BubbleContent>
-            </Bubble>
-          </MessageContent>
-        </Message>
-        <Message>
-          <MessageAvatar>
-            <Avatar>
-              <AvatarImage src="/avatars/02.png" alt="@rabbit" />
-              <AvatarFallback>R</AvatarFallback>
-            </Avatar>
-          </MessageAvatar>
-          <MessageContent>
-            <Bubble variant="muted">
-              <BubbleContent>It&apos;s 4:55 PM. On a Friday.</BubbleContent>
-            </Bubble>
-          </MessageContent>
-        </Message>
-        <Message align="end">
-          <MessageAvatar>
-            <Avatar>
-              <AvatarImage src="/avatars/10.png" alt="@me" />
-              <AvatarFallback>ME</AvatarFallback>
-            </Avatar>
-          </MessageAvatar>
-          <MessageContent>
-            <Bubble>
-              <BubbleContent>It&apos;s a one-line change.</BubbleContent>
-            </Bubble>
-            <MessageFooter>Delivered</MessageFooter>
-          </MessageContent>
-        </Message>
-        <Message>
-          <MessageAvatar>
-            <Avatar>
-              <AvatarImage src="/avatars/02.png" alt="@rabbit" />
-              <AvatarFallback>R</AvatarFallback>
-            </Avatar>
-          </MessageAvatar>
-          <MessageContent>
-            <BubbleGroup>
-              <Bubble variant="muted">
-                <BubbleContent>
-                  It&apos;s always a one-line change 😭.
-                </BubbleContent>
-              </Bubble>
-              <Bubble variant="muted">
-                <BubbleContent>Alright, let me take a look.</BubbleContent>
-                <BubbleReactions aria-label="Reactions: thumbs up">
-                  <span>👍</span>
-                </BubbleReactions>
-              </Bubble>
-            </BubbleGroup>
-          </MessageContent>
-        </Message>
-        <Marker role="status">
-          <MarkerContent className="shimmer">
-            <span className="font-medium">Oliver</span> is typing...
-          </MarkerContent>
-        </Marker> */}
-    </>
+      <div ref={bottomRef} />
+    </div>
   );
 }

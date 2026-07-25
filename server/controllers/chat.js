@@ -5,6 +5,7 @@ import {
 import { createLLM } from '../services/llmService.js';
 import { createSqlAgent, invokeAgent } from '../services/agentService.js';
 import Thread from '../models/Thread.js';
+import mongoose from 'mongoose';
 
 const chatController = {};
 
@@ -49,10 +50,16 @@ chatController.chat = async (req, res) => {
 		});
 		await thread.save();
 
+		const assistantMessage = thread.messages[thread.messages.length - 1];
+
 		res.json({
-			threadId: thread._id,
-			answer,
-			sql: sqlUsed,
+			message: assistantMessage,
+			thread: {
+				id: thread._id,
+				title: thread.title,
+				connection_id: thread.connection,
+				created_at: thread.createdAt,
+			},
 		});
 	} catch (error) {
 		console.error('Chat error:', error);
@@ -81,7 +88,28 @@ chatController.getMessages = async (req, res) => {
 };
 
 chatController.deleteThread = async (req, res) => {
-	res.status(404).json({ error: 'Not implemented' });
+	const { threadId } = req.params;
+	try {
+		const thread = await Thread.findOneAndDelete({
+			_id: threadId,
+			user: req.user.id,
+		});
+
+		if (thread) {
+			// Clean up orphaned LangGraph checkpoints
+			const db = mongoose.connection.db;
+			await Promise.all([
+				db.collection('checkpoints').deleteMany({ thread_id: threadId }),
+				db.collection('checkpoint_writes').deleteMany({ thread_id: threadId }),
+				db.collection('checkpoint_blobs').deleteMany({ thread_id: threadId }),
+			]);
+		}
+		res.json(thread);
+	} catch (error) {
+		console.log(error);
+
+		res.status(500).json({ error: 'Something went wrong' });
+	}
 };
 
 export default chatController;

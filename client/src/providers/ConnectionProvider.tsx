@@ -2,7 +2,7 @@ import ConnectionContext from "@/contexts/ConnectionContext";
 import { api } from "@/services/apiClient";
 import { type Schema, type Connection, type ConnectionResponse } from "@/types";
 import { useContext, useEffect, useState, type ReactNode } from "react";
-import { toast } from "sonner";
+
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -32,14 +32,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
             setActiveSchema(response.schema);
           }
         }
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-          console.log(error);
-        } else {
-          toast.error("An unexpected error occurred");
-          console.error("An unexpected error occurred", error);
-        }
+      } catch {
+        // error toasted by interceptor
       }
     };
 
@@ -58,14 +52,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       }
       setActiveConnection(response.connection);
       setActiveSchema(response.schema);
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-        console.log(error);
-      } else {
-        toast.error("An unexpected error occurred");
-        console.error("An unexpected error occurred", error);
-      }
+    } catch {
+      // error toasted by interceptor
     }
   };
 
@@ -77,14 +65,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       const connectedDb = await api.activateConnection(id);
       setActiveConnection(connectedDb.connection);
       setActiveSchema(connectedDb.schema);
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-        console.log(error);
-      } else {
-        toast.error("An unexpected error occurred");
-        console.error("An unexpected error occurred", error);
-      }
+    } catch {
+      // error toasted by interceptor
     }
   };
 

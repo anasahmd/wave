@@ -9,8 +9,7 @@ export async function findDbConnection({ userId, connectionId }) {
 		user: userId,
 	});
 
-	if (!connection)
-		return res.status(404).json({ error: 'Connection not found' });
+	if (!connection) throw new Error('Connection not found');
 
 	// Auto-reconnect if needed
 	if (!dbManager.isConnected({ userId: userId, connectionId })) {
@@ -44,7 +43,7 @@ export async function getOrCreateThread({
 	let thread;
 	if (threadId) {
 		thread = await Thread.findOne({ _id: threadId, user: userId });
-		if (!thread) return res.status(404).json({ error: 'Thread not found' });
+		if (!thread) throw new Error('Thread not found');
 	} else {
 		const title = message.length > 50 ? message.slice(0, 47) + '...' : message;
 		thread = await Thread.create({

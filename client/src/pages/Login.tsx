@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import { loginSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
@@ -38,14 +37,8 @@ const Login = () => {
         },
         token
       );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-        console.log(error);
-      } else {
-        toast.error("An unexpected error occurred");
-        console.error("An unexpected error occurred", error);
-      }
+    } catch {
+      // error toasted by interceptor
     }
   };
 
