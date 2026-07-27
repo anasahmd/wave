@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import SettingsDialog from "@/components/SettingsDialog";
+import SettingsDialog from "@/components/settings/SettingsDialog";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function AppSidebar() {

@@ -212,7 +212,7 @@
 }
 
 ::-webkit-scrollbar {
-  @apply h-2.5 w-2.5;
+  @apply h-2.5 w-2;
 }
 
 ::-webkit-scrollbar-track {
@@ -225,4 +225,33 @@
 
 ::-webkit-scrollbar-corner {
   @apply bg-transparent;
+}
+
+@keyframes bounce-dot {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid rgba(255, 255, 255, 0.15); /* adjust for your dark theme */
+  padding: 6px 12px;
+  text-align: left;
+}
+
+.markdown-content th {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
 }

@@ -1,5 +1,5 @@
 import { AuthLayout } from "@/components/layouts/AuthLayout";
-import ChatArea from "@/components/ChatArea";
+import ChatArea from "@/components/chatarea/ChatArea";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Route, Routes } from "react-router-dom";

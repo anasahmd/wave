@@ -11,7 +11,7 @@ import { AuthProvider } from "./providers/AuthProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="light" storageKey="wave-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="wave-ui-theme">
       <Toaster position="bottom-center" />
       <BrowserRouter>
         <AuthProvider>

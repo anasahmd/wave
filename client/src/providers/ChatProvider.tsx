@@ -49,17 +49,46 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_ACTIVE_THREAD", payload: threadId });
   };
 
-  const addMessage = (message: Message) => {
-    dispatch({ type: "ADD_MESSAGE", payload: message });
+  const sendMessage = async (message: string) => {
+    if (activeConnection) {
+      dispatch({ type: "SET_STATUS", payload: "sending" });
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          id: crypto.randomUUID(),
+          role: "user",
+          sql_query: null,
+          content: message,
+          created_at: new Date().toISOString(),
+        },
+      });
+
+      try {
+        const response = await api.chat({
+          message,
+          connectionId: activeConnection.id,
+          threadId: state.activeThreadId,
+        });
+
+        dispatch({ type: "ADD_MESSAGE", payload: response.message });
+        dispatch({ type: "SET_STATUS", payload: "idle" });
+        if (!state.activeThreadId) {
+          addThread(response.thread);
+        }
+      } catch {
+        dispatch({ type: "SET_STATUS", payload: "error" });
+        // error toasted by interceptor
+      }
+    }
   };
 
-  const deleteThread = (threadId: string) => {
+  function deleteThread(threadId: string) {
     dispatch({ type: "DELETE_THREAD", payload: threadId });
-  };
+  }
 
-  const addThread = (thread: Thread) => {
+  function addThread(thread: Thread) {
     dispatch({ type: "ADD_THREAD", payload: thread });
-  };
+  }
 
   return (
     <ChatContext
@@ -69,9 +98,9 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         messages: state.messages,
         status: state.status,
         setActiveThread,
-        addMessage,
         deleteThread,
         addThread,
+        sendMessage,
       }}
     >
       {children}

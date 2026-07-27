@@ -4,6 +4,7 @@ import {
   MoreHorizontal,
   Pen,
   Pencil,
+  Pin,
   Star,
   StarOff,
   Trash2,
@@ -62,13 +63,13 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
           }
         ></DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-56 rounded-lg"
+          className="w-52 rounded-lg"
           side={isMobile ? "bottom" : "right"}
           align={isMobile ? "end" : "start"}
         >
           <DropdownMenuItem>
-            <Star className="text-muted-foreground" />
-            <span>Star</span>
+            <Pin className="text-muted-foreground" />
+            <span>Pin</span>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Pencil className="text-muted-foreground" />

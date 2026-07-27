@@ -1,6 +1,6 @@
-import InputBar from "./InputBar";
+import InputBar from "@/components/chatarea/InputBar";
 import MessageList from "./MessageList";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function ChatArea() {
   return (
@@ -11,7 +11,7 @@ export default function ChatArea() {
       <div className="sticky bottom-0 bg-background pt-4">
         <InputBar />
         <p className="my-3 text-center text-xs">
-          Wave is AI and can make mistakes. Please double-check queries.
+          Wave is AI and can make mistakes.
         </p>
       </div>
     </div>

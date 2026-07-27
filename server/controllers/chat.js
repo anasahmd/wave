@@ -45,7 +45,7 @@ chatController.chat = async (req, res) => {
 
 		thread.messages.push({
 			role: 'assistant',
-			content: answer,
+			content: answer || 'Sorry, I was unable to generate a response.',
 			sql_query: sqlUsed,
 		});
 		await thread.save();

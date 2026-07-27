@@ -7,11 +7,15 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./ui/collapsible";
+} from "../ui/collapsible";
 import { ChevronRight } from "lucide-react";
+import remarkGfm from "remark-gfm";
+import { cn } from "@/lib/utils";
 
 export default function MessageList() {
-  const { messages } = useChat();
+  const { messages, status } = useChat();
+
+  const isPending = status === "sending" || status === "loading";
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,9 +33,14 @@ export default function MessageList() {
           <MessageContent>
             <Bubble variant={message.role === "user" ? "default" : "ghost"}>
               <BubbleContent
-                className={message.role === "assistant" ? "w-full" : ""}
+                className={cn(
+                  message.role === "assistant" ? "w-full" : "",
+                  "markdown-content overflow-auto"
+                )}
               >
-                <MarkDown>{message.content}</MarkDown>
+                <MarkDown remarkPlugins={[remarkGfm]}>
+                  {message.content}
+                </MarkDown>
               </BubbleContent>
               {message.role === "assistant" && message.sql_query && (
                 <Collapsible className="ml-0.5">
@@ -53,6 +62,37 @@ export default function MessageList() {
           </MessageContent>
         </Message>
       ))}
+      {isPending && (
+        <Message className="my-7">
+          <Bubble variant="ghost">
+            <BubbleContent className="w-full">
+              <div className="flex items-center gap-1 py-1">
+                <span
+                  className="size-2 rounded-full bg-muted-foreground"
+                  style={{
+                    animation: "bounce-dot 1.4s infinite ease-in-out both",
+                    animationDelay: "0s",
+                  }}
+                />
+                <span
+                  className="size-2 rounded-full bg-muted-foreground"
+                  style={{
+                    animation: "bounce-dot 1.4s infinite ease-in-out both",
+                    animationDelay: "0.16s",
+                  }}
+                />
+                <span
+                  className="size-2 rounded-full bg-muted-foreground"
+                  style={{
+                    animation: "bounce-dot 1.4s infinite ease-in-out both",
+                    animationDelay: "0.32s",
+                  }}
+                />
+              </div>
+            </BubbleContent>
+          </Bubble>
+        </Message>
+      )}
       <div ref={bottomRef} />
     </div>
   );

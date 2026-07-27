@@ -30,6 +30,9 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         activeThreadId: action.payload.id,
       };
     }
+    case "SET_STATUS": {
+      return { ...state, status: action.payload };
+    }
     default: {
       return state;
     }
