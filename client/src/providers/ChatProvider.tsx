@@ -1,7 +1,12 @@
 import ChatContext from "@/contexts/ChatContext";
 import chatReducer from "@/reducers/chat";
 import { api } from "@/services/apiClient";
-import type { ChatState, Message, Thread } from "@/types";
+import type {
+  ChatState,
+  Message,
+  Thread,
+  UpdateThreadTitlePayload,
+} from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useConnection } from "./ConnectionProvider";
 
@@ -91,8 +96,33 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   async function pinThread(threadId: string) {
-    const updatedThread = await api.pinThread(threadId);
-    dispatch({ type: "UPDATE_THREAD", payload: updatedThread });
+    try {
+      const updatedThread = await api.pinThread(threadId);
+      dispatch({ type: "UPDATE_THREAD", payload: updatedThread });
+    } catch {
+      // error toasted by interceptor
+    }
+  }
+
+  async function updateThreadTitle({
+    threadId,
+    title,
+  }: UpdateThreadTitlePayload) {
+    const originalThread = state.threads.find((t) => t.id === threadId);
+    if (!originalThread) return;
+
+    // optimistic ui update
+    dispatch({
+      type: "UPDATE_THREAD",
+      payload: { ...originalThread, title },
+    });
+    try {
+      const updatedThread = await api.updateThreadTitle({ threadId, title });
+      dispatch({ type: "UPDATE_THREAD", payload: updatedThread });
+    } catch {
+      // error toasted by interceptor
+      dispatch({ type: "UPDATE_THREAD", payload: originalThread });
+    }
   }
 
   return (
@@ -107,6 +137,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         addThread,
         sendMessage,
         pinThread,
+        updateThreadTitle,
       }}
     >
       {children}

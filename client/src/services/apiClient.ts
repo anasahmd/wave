@@ -100,6 +100,15 @@ export const api = {
   pinThread: (threadId: string): Promise<Thread> =>
     apiClient.patch(`/chats/threads/${threadId}/pin`),
 
+  updateThreadTitle: ({
+    threadId,
+    title,
+  }: {
+    threadId: string;
+    title: string;
+  }): Promise<Thread> =>
+    apiClient.patch(`/chats/threads/${threadId}/title`, { title }),
+
   deleteThread: (threadId: string): Promise<Thread> =>
     apiClient.delete(`/chats/threads/${threadId}`),
 };

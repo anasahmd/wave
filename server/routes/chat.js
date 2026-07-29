@@ -10,5 +10,6 @@ chatRouter.get('/threads/:connectionId', chatController.getThreads);
 chatRouter.get('/messages/:threadId', chatController.getMessages);
 chatRouter.delete('/threads/:threadId', chatController.deleteThread);
 chatRouter.patch('/threads/:threadId/pin', chatController.togglePin);
+chatRouter.patch('/threads/:threadId/title', chatController.updateThreadTitle);
 
 export default chatRouter;

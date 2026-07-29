@@ -107,6 +107,29 @@ chatController.togglePin = async (req, res) => {
 	res.json(thread);
 };
 
+chatController.updateThreadTitle = async (req, res) => {
+	const { threadId } = req.params;
+	const { title } = req.body;
+
+	if (!title || !title.trim())
+		return res.status(400).json({ error: 'title is required' });
+
+	try {
+		const thread = await Thread.findOneAndUpdate(
+			{ _id: threadId, user: req.user.id },
+			{ title: title.trim() },
+			{ returnDocument: 'after', runValidators: true },
+		);
+
+		if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+		res.json(thread);
+	} catch (error) {
+		console.error('Error updating thread title:', error);
+		res.status(500).json({ error: 'Failed to update thread title' });
+	}
+};
+
 chatController.deleteThread = async (req, res) => {
 	const { threadId } = req.params;
 	try {

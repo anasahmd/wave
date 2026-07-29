@@ -22,6 +22,11 @@ export interface ChatState {
   status: "idle" | "loading" | "sending" | "error";
 }
 
+export interface UpdateThreadTitlePayload {
+  threadId: string;
+  title: string;
+}
+
 export type ChatAction =
   // Thread Actions
   | { type: "SET_THREADS"; payload: Thread[] }
@@ -44,4 +49,5 @@ export interface ChatContextType extends ChatState {
   addThread: (thread: Thread) => void;
   sendMessage: (text: string) => void;
   pinThread: (threadId: string) => void;
+  updateThreadTitle: (payload: UpdateThreadTitlePayload) => void;
 }
