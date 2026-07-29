@@ -64,8 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success(`You're logged out`);
   };
 
+  const handleGuestLogin = (user: User, token: string) => {
+    dispatch({ type: "LOGIN", payload: user });
+    localStorage.setItem("wave_token", token);
+    navigate("/");
+    toast.success("You're logged in as guest user");
+  };
+
   return (
-    <AuthContext value={{ ...state, handleLogin, handleLogout }}>
+    <AuthContext
+      value={{ ...state, handleLogin, handleGuestLogin, handleLogout }}
+    >
       {children}
     </AuthContext>
   );

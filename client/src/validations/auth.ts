@@ -1,4 +1,4 @@
-import * as z from "zod"
+import * as z from "zod";
 
 export const registerSchema = z
   .object({
@@ -6,7 +6,8 @@ export const registerSchema = z
       .string({
         error: (issue) => (!issue.input ? "Name is required" : "Invalid name"),
       })
-      .min(2, { error: "Name must be at least 2 characters long" }), // 'error' replaces 'message'
+      .min(2, { error: "Name must be at least 2 characters long" })
+      .max(30, { error: "Name cannot exceed 30 characters" }),
 
     email: z.email({
       error: (issue) =>
@@ -43,4 +44,4 @@ export const loginSchema = z.object({
         !issue.input ? "Password is required" : "Invalid password",
     })
     .min(6, { error: "Password must be at least 6 characters long" }),
-})
+});

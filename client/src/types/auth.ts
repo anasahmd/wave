@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  created_at: string;
 }
 
 export interface RegisterPayload {
@@ -34,12 +35,13 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   handleLogin: (user: User, token: string) => void;
   handleLogout: () => void;
+  handleGuestLogin: (user: User, token: string) => void;
 }
 
 export type AuthAction =
   | {
       type: "LOGIN";
-      payload: { id: string; email: string; name: string };
+      payload: User;
     }
   | { type: "LOGOUT" }
   | {

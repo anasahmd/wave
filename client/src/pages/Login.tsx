@@ -7,9 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/services/apiClient";
 import { useAuth } from "@/providers/AuthProvider";
+import type { LoginPayload } from "@/types";
 
 const Login = () => {
-  const { handleLogin } = useAuth();
+  const { handleLogin, handleGuestLogin } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -19,24 +20,20 @@ const Login = () => {
     },
   });
 
-  const onSubmit = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
+  const onSubmit = async ({ email, password }: LoginPayload) => {
     try {
       const { token, user } = await api.login({ email, password });
 
-      handleLogin(
-        {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        },
-        token
-      );
+      handleLogin(user, token);
+    } catch {
+      // error toasted by interceptor
+    }
+  };
+
+  const onGuestLogin = async () => {
+    try {
+      const { user, token } = await api.guestLogin();
+      handleGuestLogin(user, token);
     } catch {
       // error toasted by interceptor
     }
@@ -45,7 +42,7 @@ const Login = () => {
   return (
     <section className="my-8 flex w-full items-center justify-center py-8 text-start">
       <div className="w-full max-w-md space-y-6">
-        <h2 className="my-10 text-center text-3xl font-bold">Login</h2>
+        <h2 className="my-10 text-center text-3xl font-medium">Login</h2>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-6"
@@ -56,7 +53,10 @@ const Login = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Email
                 </FieldLabel>
                 <Input
@@ -79,7 +79,10 @@ const Login = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Password
                 </FieldLabel>
                 <Input
@@ -98,19 +101,16 @@ const Login = () => {
             )}
           />
 
-          <div className="flex items-center justify-between">
-            <Link
-              to="/forgot-password"
-              className="text-sm font-bold hover:underline"
-            >
+          {/* <div className="flex items-center justify-between">
+            <Link to="/forgot-password" className="text-sm hover:underline">
               Forgot password?
             </Link>
-          </div>
+          </div> */}
 
           <div>
             <Button
               type="submit"
-              className="text-md w-full cursor-pointer rounded-md font-bold"
+              className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
             >
               Login
             </Button>
@@ -119,11 +119,12 @@ const Login = () => {
 
         <Button
           type="submit"
-          className="text-md w-full cursor-pointer rounded-md font-bold"
+          className="text-md w-full cursor-pointer rounded-md font-medium"
+          onClick={onGuestLogin}
         >
-          Login as guest
+          Login as Guest
         </Button>
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           Don't have an account?{" "}
           <Link to="/register" className="font-medium text-primary">
             Sign Up

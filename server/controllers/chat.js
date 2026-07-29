@@ -6,17 +6,24 @@ import { createLLM } from '../services/llmService.js';
 import { createSqlAgent, invokeAgent } from '../services/agentService.js';
 import Thread from '../models/Thread.js';
 import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 const chatController = {};
 
 chatController.chat = async (req, res) => {
 	const { message, connectionId, threadId } = req.body;
 	try {
+		const user = await User.findById(req.user.id);
 		// Finding the DB connection
 		const { schema, dataSource } = await findDbConnection({
 			connectionId,
 			userId: req.user.id,
 		});
+
+		// Invoke agent
+		const llm = createLLM(user.llm_config);
+
+		const agent = createSqlAgent({ model: llm, dataSource, schema });
 
 		// Create or retrieve thread
 		const thread = await getOrCreateThread({
@@ -30,9 +37,6 @@ chatController.chat = async (req, res) => {
 		thread.messages.push({ role: 'user', content: message });
 		await thread.save();
 
-		// Invoke agent
-		const llm = createLLM();
-		const agent = createSqlAgent({ model: llm, dataSource, schema });
 		const { answer, executedQueries } = await invokeAgent({
 			agent,
 			message,
@@ -62,8 +66,12 @@ chatController.chat = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error('Chat error:', error);
-		res.status(500).json({ error: error.message || 'Something went wrong' });
+		console.error('Chat error:', {
+			name: error.name,
+			message: error.message,
+			status: error.status,
+		});
+		res.status(500).json({ error: 'Something went wrong. Please try again.' });
 	}
 };
 

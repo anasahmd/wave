@@ -153,12 +153,19 @@ export function createSqlAgent({ model, dataSource, schema }) {
 }
 
 export async function invokeAgent({ agent, message, threadId }) {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 55000);
+
 	try {
 		const result = await agent.invoke(
 			{
 				messages: [{ role: 'user', content: message }],
 			},
-			{ configurable: { thread_id: threadId }, recursionLimit: 7 },
+			{
+				configurable: { thread_id: threadId },
+				recursionLimit: 7,
+				signal: controller.signal,
+			},
 		);
 
 		// console.log(result);
@@ -180,7 +187,13 @@ export async function invokeAgent({ agent, message, threadId }) {
 
 		return { answer, executedQueries };
 	} catch (err) {
-		console.log(err);
+		console.dir(err);
+
+		console.error('Agent invocation failed:', {
+			name: err.name,
+			message: err.message,
+			status: err.status,
+		});
 
 		if (err instanceof GraphRecursionError) {
 			return {
@@ -191,7 +204,6 @@ export async function invokeAgent({ agent, message, threadId }) {
 		}
 
 		if (err.status === 429) {
-			console.log(err);
 			return {
 				answer: "I'm getting rate limited right now, please try again shortly.",
 				executedQueries: [],
@@ -205,6 +217,39 @@ export async function invokeAgent({ agent, message, threadId }) {
 				executedQueries: [],
 			};
 		}
+
+		if (err.code === 'ECONNREFUSED') {
+			return {
+				answer:
+					'Could not reach the LLM server. Please make sure it is running.',
+				executedQueries: [],
+			};
+		}
+
+		if (err.code === 'ENOTFOUND') {
+			return {
+				answer:
+					'LLM server address not found. Please check the server configuration.',
+				executedQueries: [],
+			};
+		}
+
+		if (err.message?.includes('timeout')) {
+			return {
+				answer:
+					'The request timed out. Try a simpler question or check if the LLM server is responsive.',
+				executedQueries: [],
+			};
+		}
+
+		if (err.status === 401) {
+			return {
+				answer:
+					'Authentication failed with the LLM provider. Please check the API key configuration.',
+				executedQueries: [],
+			};
+		}
+
 		throw err;
 	}
 }

@@ -50,6 +50,8 @@ export const api = {
   login: (payload: LoginPayload): Promise<AuthResponse> =>
     apiClient.post("/auth/login", payload),
 
+  guestLogin: (): Promise<AuthResponse> => apiClient.post("/auth/guest"),
+
   me: (): Promise<User> => apiClient.get("/auth/me"),
 
   changePassword: (payload: ChangePasswordPayload) =>

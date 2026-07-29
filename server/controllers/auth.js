@@ -22,7 +22,12 @@ authController.register = async (req, res) => {
 
 		res.status(201).json({
 			token,
-			user: { id: user._id, email: user.email, name: user.name },
+			user: {
+				id: user._id,
+				email: user.email,
+				name: user.name,
+				created_at: user.createdAt,
+			},
 		});
 	} catch (e) {
 		console.log(e);
@@ -51,7 +56,12 @@ authController.login = async (req, res) => {
 
 		res.status(200).json({
 			token,
-			user: { id: user._id, email: user.email, name: user.name },
+			user: {
+				id: user._id,
+				email: user.email,
+				name: user.name,
+				created_at: user.createdAt,
+			},
 		});
 	} catch (e) {
 		console.log(e);
@@ -62,8 +72,7 @@ authController.login = async (req, res) => {
 
 authController.me = async (req, res) => {
 	try {
-		const { id } = req.user;
-		const user = await User.findById(id).select('-password_hash');
+		const user = await User.findById(req.user.id).select('-password_hash');
 
 		if (!user) {
 			return res.status(404).json({ error: 'User not found' });
@@ -80,6 +89,26 @@ authController.me = async (req, res) => {
 
 		res.status(500).json({ error: 'Failed to fetch user data' });
 	}
+};
+
+authController.guestLogin = async (req, res) => {
+	const guestId = crypto.randomUUID().slice(0, 8);
+	const user = await User.create({
+		name: `Guest-${guestId}`,
+		email: `guest-${guestId}@wave.local`,
+		password_hash: await bcrypt.hash(crypto.randomUUID(), 4),
+	});
+
+	const token = generateToken(user);
+	res.json({
+		token,
+		user: {
+			id: user._id,
+			name: user.name,
+			email: user.email,
+			created_at: user.createdAt,
+		},
+	});
 };
 
 authController.changePassword = async (req, res) => {

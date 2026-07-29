@@ -5,8 +5,8 @@ import { Edit, Trash } from "lucide-react";
 export default function DatabaseSection() {
   const { connections } = useConnection();
   return (
-    <div className="mx-4 mt-18">
-      <h3 className="my-4 font-semibold">Databases</h3>
+    <div>
+      <h3 className="mt-2 mb-6 font-semibold">Databases</h3>
       {connections.map((connection) => (
         <div
           key={connection.id}

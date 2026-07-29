@@ -7,10 +7,9 @@ import {
 import { cn } from "@/lib/utils";
 import ProfileSection from "./ProfileSection";
 import DatabaseSection from "./DatabaseSection";
-import ModelSection from "./ModelSection";
 import SettingsNavButton from "./SettingsNavButton";
 import { useState } from "react";
-import { CircleUserRound, Database, Sparkles } from "lucide-react";
+import { CircleUserRound, Database } from "lucide-react";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -42,20 +41,12 @@ export default function SettingsDialog({
               <Database className="size-4" />
               <p className="pt-0.5">Databases</p>
             </SettingsNavButton>
-            <SettingsNavButton
-              active={activeSection === "model"}
-              onClick={() => setActiveSection("model")}
-            >
-              <Sparkles className="size-4" />
-              <p className="pt-0.5">Model</p>
-            </SettingsNavButton>
           </nav>
 
           {/* Right content */}
-          <div className="flex-1 pl-6">
+          <div className="mx-4 mt-16 flex-1 pl-6">
             {activeSection === "account" && <ProfileSection />}
             {activeSection === "database" && <DatabaseSection />}
-            {activeSection === "model" && <ModelSection />}
           </div>
         </div>
       </DialogContent>

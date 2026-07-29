@@ -7,6 +7,7 @@ import { registerSchema } from "@/validations/auth";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { api } from "@/services/apiClient";
 import { useAuth } from "@/providers/AuthProvider";
+import type { RegisterPayload } from "@/types";
 
 const Register = () => {
   const { handleLogin } = useAuth();
@@ -21,27 +22,12 @@ const Register = () => {
     },
   });
 
-  const onSubmit = async ({
-    email,
-    password,
-    name,
-  }: {
-    email: string;
-    password: string;
-    name: string;
-  }) => {
+  const onSubmit = async ({ email, password, name }: RegisterPayload) => {
     try {
       // Api call
       const { user, token } = await api.register({ email, password, name });
 
-      handleLogin(
-        {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        },
-        token
-      );
+      handleLogin(user, token);
     } catch {
       // error toasted by interceptor
     }
@@ -50,7 +36,7 @@ const Register = () => {
   return (
     <section className="my-8 flex w-full items-center justify-center py-8 text-start">
       <div className="w-full max-w-md space-y-6">
-        <h2 className="my-10 text-center text-3xl font-bold">Register</h2>
+        <h2 className="my-10 text-center text-3xl font-medium">Register</h2>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-6"
@@ -61,7 +47,10 @@ const Register = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Full Name
                 </FieldLabel>
                 <Input
@@ -84,7 +73,10 @@ const Register = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Email
                 </FieldLabel>
                 <Input
@@ -108,7 +100,10 @@ const Register = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Password
                 </FieldLabel>
                 <Input
@@ -132,7 +127,10 @@ const Register = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-md font-bold">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-md font-medium"
+                >
                   Confirm Password
                 </FieldLabel>
                 <Input
@@ -154,7 +152,7 @@ const Register = () => {
           <div>
             <Button
               type="submit"
-              className="text-md w-full cursor-pointer rounded-md font-bold"
+              className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
             >
               Register
             </Button>

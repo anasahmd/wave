@@ -10,5 +10,6 @@ authRouter.post('/register', validate(registerSchema), authController.register);
 authRouter.post('/login', authController.login);
 authRouter.get('/me', authenticate, authController.me);
 authRouter.put('/password', authController.changePassword);
+authRouter.post('/guest', authController.guestLogin);
 
 export default authRouter;
