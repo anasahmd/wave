@@ -21,7 +21,12 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       );
       const activeThreadId =
         state.activeThreadId !== action.payload ? state.activeThreadId : null;
-      return { ...state, threads: updaetdThreads, activeThreadId };
+      return {
+        ...state,
+        threads: updaetdThreads,
+        activeThreadId,
+        messages: [],
+      };
     }
     case "ADD_THREAD": {
       return {
@@ -32,6 +37,14 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     }
     case "SET_STATUS": {
       return { ...state, status: action.payload };
+    }
+    case "UPDATE_THREAD": {
+      return {
+        ...state,
+        threads: state.threads.map((thread) =>
+          thread.id === action.payload.id ? action.payload : thread
+        ),
+      };
     }
     default: {
       return state;

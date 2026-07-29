@@ -90,6 +90,11 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "ADD_THREAD", payload: thread });
   }
 
+  async function pinThread(threadId: string) {
+    const updatedThread = await api.pinThread(threadId);
+    dispatch({ type: "UPDATE_THREAD", payload: updatedThread });
+  }
+
   return (
     <ChatContext
       value={{
@@ -101,6 +106,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         deleteThread,
         addThread,
         sendMessage,
+        pinThread,
       }}
     >
       {children}

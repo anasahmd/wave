@@ -1,14 +1,4 @@
-import {
-  ArrowUpRight,
-  Link,
-  MoreHorizontal,
-  Pen,
-  Pencil,
-  Pin,
-  Star,
-  StarOff,
-  Trash2,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,9 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -30,7 +17,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { api } from "@/services/apiClient";
 
 export default function ThreadListItem({ thread }: { thread: Thread }) {
-  const { activeThreadId, setActiveThread, deleteThread } = useChat();
+  const { activeThreadId, setActiveThread, deleteThread, pinThread } =
+    useChat();
   const isMobile = useIsMobile();
 
   const handleDelete = async () => {
@@ -47,12 +35,10 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
       <SidebarMenuButton
         className={activeThreadId === thread.id ? "bg-accent" : ""}
         onClick={() => setActiveThread(thread.id)}
-        render={
-          <SidebarMenuButton title={thread.title}>
-            <span>{thread.title}</span>
-          </SidebarMenuButton>
-        }
-      ></SidebarMenuButton>
+        title={thread.title}
+      >
+        <span className="mr-auto">{thread.title}</span>
+      </SidebarMenuButton>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -61,15 +47,24 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
               <span className="sr-only">More</span>
             </SidebarMenuAction>
           }
-        ></DropdownMenuTrigger>
+        />
         <DropdownMenuContent
           className="w-52 rounded-lg"
           side={isMobile ? "bottom" : "right"}
           align={isMobile ? "end" : "start"}
         >
-          <DropdownMenuItem>
-            <Pin className="text-muted-foreground" />
-            <span>Pin</span>
+          <DropdownMenuItem onClick={() => pinThread(thread.id)}>
+            {thread.pinned ? (
+              <>
+                <PinOff className="text-muted-foreground" />
+                <span>Unpin</span>
+              </>
+            ) : (
+              <>
+                <Pin className="text-muted-foreground" />
+                <span>Pin</span>
+              </>
+            )}
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Pencil className="text-muted-foreground" />

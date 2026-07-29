@@ -38,6 +38,10 @@ const threadSchema = new mongoose.Schema(
 			default: 'New Chat',
 		},
 		messages: [messageSchema],
+		pinned: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	{ timestamps: true },
 );

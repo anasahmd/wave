@@ -4,6 +4,7 @@ export interface Thread {
   connection_id: string;
   created_at: string;
   updated_at?: string;
+  pinned: boolean;
 }
 
 export interface Message {
@@ -27,6 +28,7 @@ export type ChatAction =
   | { type: "SET_ACTIVE_THREAD"; payload: string | null }
   | { type: "ADD_THREAD"; payload: Thread }
   | { type: "DELETE_THREAD"; payload: string }
+  | { type: "UPDATE_THREAD"; payload: Thread }
 
   // Message Actions
   | { type: "SET_MESSAGES"; payload: Message[] }
@@ -41,4 +43,5 @@ export interface ChatContextType extends ChatState {
   deleteThread: (threadId: string) => void;
   addThread: (thread: Thread) => void;
   sendMessage: (text: string) => void;
+  pinThread: (threadId: string) => void;
 }

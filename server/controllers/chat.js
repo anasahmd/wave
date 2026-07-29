@@ -81,8 +81,8 @@ chatController.getThreads = async (req, res) => {
 		connection: connectionId,
 		user: req.user.id,
 	})
-		.select('title createdAt')
-		.sort({ createdAt: -1 });
+		.select('title pinned createdAt')
+		.sort({ updatedAt: -1 });
 
 	res.json(threads);
 };
@@ -93,6 +93,18 @@ chatController.getMessages = async (req, res) => {
 	if (!thread) return res.status(404).json({ error: 'Thread not found' });
 
 	res.json(thread.messages);
+};
+
+chatController.togglePin = async (req, res) => {
+	const { threadId } = req.params;
+	const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
+
+	if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+	thread.pinned = !thread.pinned;
+	await thread.save();
+
+	res.json(thread);
 };
 
 chatController.deleteThread = async (req, res) => {

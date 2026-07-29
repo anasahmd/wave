@@ -97,6 +97,9 @@ export const api = {
   getMessages: (threadId: string): Promise<Message[]> =>
     apiClient.get(`/chats/messages/${threadId}`),
 
+  pinThread: (threadId: string): Promise<Thread> =>
+    apiClient.patch(`/chats/threads/${threadId}/pin`),
+
   deleteThread: (threadId: string): Promise<Thread> =>
     apiClient.delete(`/chats/threads/${threadId}`),
 };
