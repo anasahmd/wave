@@ -3,16 +3,13 @@ import { api } from "@/services/apiClient";
 import { type Schema, type Connection, type ConnectionResponse } from "@/types";
 import { useContext, useEffect, useState, type ReactNode } from "react";
 
-
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
-  const [activeConnection, setActiveConnection] = useState<
-    Connection | undefined
-  >(undefined);
-
-  const [activeSchema, setActiveSchema] = useState<Schema | undefined>(
-    undefined
+  const [activeConnection, setActiveConnection] = useState<Connection | null>(
+    null
   );
+
+  const [activeSchema, setActiveSchema] = useState<Schema | null>(null);
 
   useEffect(() => {
     const fetchConnectionData = async () => {
@@ -70,6 +67,33 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateConnectionName = async (id: string, name: string) => {
+    try {
+      const updatedConnection = await api.updateConnectionName(id, name);
+      const updatedConnections = connections.map((connection) =>
+        connection.id === updatedConnection.id ? updatedConnection : connection
+      );
+      setConnections(updatedConnections);
+    } catch {
+      // error toasted by interceptor
+    }
+  };
+
+  const removeConnection = async (id: string) => {
+    try {
+      const removedConnection = await api.removeConnection(id);
+      const filteredConnections = connections.filter(
+        (connection) => connection.id !== removedConnection.id
+      );
+      setConnections(filteredConnections);
+      if (activeConnection && removedConnection.id === activeConnection.id) {
+        setActiveConnection(null);
+      }
+    } catch {
+      // error toasted by interceptor
+    }
+  };
+
   return (
     <ConnectionContext
       value={{
@@ -78,6 +102,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
         activeConnection,
         switchConnection,
         activeSchema,
+        updateConnectionName,
+        removeConnection,
       }}
     >
       {children}

@@ -30,4 +30,6 @@ export interface ConnectionContextType {
   switchConnection: (id: string) => void;
   activeConnection: Connection | undefined;
   activeSchema: Schema | undefined;
+  updateConnectionName: (id: string, name: string) => void;
+  removeConnection: (id: string) => void;
 }

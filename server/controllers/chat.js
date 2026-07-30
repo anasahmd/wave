@@ -114,6 +114,10 @@ chatController.updateThreadTitle = async (req, res) => {
 	if (!title || !title.trim())
 		return res.status(400).json({ error: 'title is required' });
 
+	if (title.trim().length > 100) {
+		return res.status(400).json({ error: 'Title too long' });
+	}
+
 	try {
 		const thread = await Thread.findOneAndUpdate(
 			{ _id: threadId, user: req.user.id },

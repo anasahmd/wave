@@ -77,7 +77,12 @@ export const api = {
 
   disconnectDb: (id: string): Promise<Connection> =>
     apiClient.post(`/connections/${id}/disconnect`),
-  removeConnection: (id: string) => apiClient.delete(`/connections/${id}`),
+
+  removeConnection: (id: string): Promise<Connection> =>
+    apiClient.delete(`/connections/${id}`),
+
+  updateConnectionName: (id: string, name: string): Promise<Connection> =>
+    apiClient.patch(`/connections/${id}/name`, { name }),
 
   // Chat
   chat: ({

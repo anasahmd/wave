@@ -154,7 +154,7 @@ export function createSqlAgent({ model, dataSource, schema }) {
 
 export async function invokeAgent({ agent, message, threadId }) {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 55000);
+	const timeout = setTimeout(() => controller.abort(), 155000);
 
 	try {
 		const result = await agent.invoke(

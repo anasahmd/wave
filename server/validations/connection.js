@@ -5,5 +5,5 @@ export const connectDbSchema = z.object({
 	name: z
 		.string()
 		.min(1, 'Connection name is required')
-		.max(100, 'Name too long'),
+		.max(50, 'Name too long'),
 });
