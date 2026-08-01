@@ -25,7 +25,7 @@ export default function SettingsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl rounded-lg p-0 sm:max-w-3xl">
         <div className="flex h-[700px] gap-0">
-          <nav className="flex w-4/12 flex-col border-r px-2 py-2">
+          <nav className="flex w-3/12 flex-col border-r px-2 py-2">
             <p className="my-4 ml-2 text-sm text-muted-foreground">Settings</p>
             <SettingsNavButton
               active={activeSection === "account"}

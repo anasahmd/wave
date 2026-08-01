@@ -22,7 +22,7 @@ export default function SchemaTable() {
     <Collapsible className="rounded-md">
       <SidebarGroup>
         <SidebarGroupLabel
-          className="text-xs hover:bg-accent"
+          className="text-xs text-sidebar-foreground hover:bg-accent"
           render={
             <CollapsibleTrigger className="group items-center gap-2">
               <Database />

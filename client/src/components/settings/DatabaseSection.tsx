@@ -1,7 +1,7 @@
 import { useConnection } from "@/providers/ConnectionProvider";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { Edit, Trash, Trash2Icon } from "lucide-react";
+import { Check, Edit, Trash, Trash2Icon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +60,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
 
   return (
     <div className="flex items-center justify-between border-b py-3">
-      <div className="flex items-center gap-4">
+      <div className="ml-2 flex items-center gap-4">
         {isEditing ? (
           <Input
             value={editedName}
@@ -68,7 +68,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
             autoFocus
             onBlur={handleSubmit}
             onKeyDown={handleKeyDown}
-            className="h-8 w-40"
+            className="h-8 w-40 rounded-md focus-visible:ring-1"
           />
         ) : (
           <span>{connection.name}</span>
@@ -97,10 +97,10 @@ function DatabaseItem({ connection }: { connection: Connection }) {
               <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
                 <Trash2Icon />
               </AlertDialogMedia>
-              <AlertDialogTitle>Delete database?</AlertDialogTitle>
+              <AlertDialogTitle>Delete {connection.name}?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete this database connection and
-                associated conversations.
+                This will permanently delete <strong>{connection.name}</strong>{" "}
+                and its associated conversations. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

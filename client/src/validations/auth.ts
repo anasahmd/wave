@@ -30,7 +30,7 @@ export const registerSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     error: "Passwords do not match",
     path: ["confirmPassword"],
-  })
+  });
 
 export const loginSchema = z.object({
   email: z.email({
@@ -45,3 +45,29 @@ export const loginSchema = z.object({
     })
     .min(6, { error: "Password must be at least 6 characters long" }),
 });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string({
+      error: (issue) =>
+        !issue.input ? "Password is required" : "Invalid password",
+    }),
+
+    newPassword: z
+      .string({
+        error: (issue) =>
+          !issue.input ? "Password is required" : "Invalid password",
+      })
+      .min(6, { error: "Password must be at least 6 characters long" }),
+
+    confirmPassword: z
+      .string({
+        error: (issue) =>
+          !issue.input ? "Password is required" : "Invalid password",
+      })
+      .min(6, { error: "Password must be at least 6 characters long" }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    error: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
