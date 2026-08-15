@@ -3,16 +3,37 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { api } from "@/services/apiClient";
+import { toast } from "sonner";
 
 export default function ChangePassword() {
   const form = useForm({
     resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    try {
+      await api.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      toast.success("Password updated successfully");
+      form.reset();
+    } catch {
+      // Error toasted by axios interceptor
+    }
   });
 
   return (
     <div className="my-8">
-      <h4 className="mb-4 font-medium">Change Password</h4>
-      <form className="flex flex-col gap-y-4">
+      <h4 className="mb-6 font-medium">Change Password</h4>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
         <Controller
           name="currentPassword"
           control={form.control}
@@ -48,7 +69,7 @@ export default function ChangePassword() {
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder="New Password"
                 className="rounded-md"
               />
@@ -70,7 +91,7 @@ export default function ChangePassword() {
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder="Confirm New Password"
                 className="rounded-md"
               />
@@ -78,6 +99,14 @@ export default function ChangePassword() {
             </Field>
           )}
         />
+
+        <Button
+          type="submit"
+          className="mt-2 rounded-md"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? "Changing..." : "Change Password"}
+        </Button>
       </form>
     </div>
   );

@@ -10,11 +10,11 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
 } from "../ui/sidebar";
-import { useConnection } from "@/providers/ConnectionProvider";
 import SchemaTableItem from "./SchemaTableItem";
+import { useAppSelector } from "@/store";
 
 export default function SchemaTable() {
-  const { activeSchema } = useConnection();
+  const { activeSchema } = useAppSelector((state) => state.connection);
 
   if (!activeSchema) return null;
 

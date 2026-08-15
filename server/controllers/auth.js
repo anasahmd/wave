@@ -112,7 +112,61 @@ authController.guestLogin = async (req, res) => {
 };
 
 authController.changePassword = async (req, res) => {
-	res.status(500).json({ error: 'Not implemented' });
+	try {
+		const { currentPassword, newPassword } = req.body;
+
+		const user = await User.findById(req.user.id);
+		if (!user) return res.status(404).json({ error: 'User not found' });
+
+		const validPassword = await bcrypt.compare(
+			currentPassword,
+			user.password_hash,
+		);
+		if (!validPassword) {
+			return res.status(401).json({ error: 'Current password is incorrect' });
+		}
+
+		user.password_hash = await bcrypt.hash(newPassword, 12);
+		await user.save();
+
+		res.json({ message: 'Password updated successfully' });
+	} catch (error) {
+		console.error('Change password error:', error);
+		res.status(500).json({ error: 'Failed to change password' });
+	}
+};
+
+authController.updateProfile = async (req, res) => {
+	try {
+		const { name, email } = req.body;
+
+		// Check if email is already taken by another user
+		const existingUser = await User.findOne({
+			email,
+			_id: { $ne: req.user.id },
+		});
+		if (existingUser) {
+			return res.status(409).json({ error: 'Email already in use' });
+		}
+
+		const user = await User.findByIdAndUpdate(
+			req.user.id,
+			{ name: name.trim(), email: email.trim().toLowerCase() },
+			{ returnDocument: 'after' },
+		).select('-password_hash');
+
+		if (!user) return res.status(404).json({ error: 'User not found' });
+
+		res.json({
+			id: user._id,
+			name: user.name,
+			email: user.email,
+			created_at: user.createdAt,
+		});
+	} catch (error) {
+		console.error('Update profile error:', error);
+		res.status(500).json({ error: 'Failed to update profile' });
+	}
 };
 
 authController.deleteAccount = async (req, res) => {

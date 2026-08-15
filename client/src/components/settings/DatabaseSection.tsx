@@ -1,7 +1,6 @@
-import { useConnection } from "@/providers/ConnectionProvider";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { Check, Edit, Trash, Trash2Icon } from "lucide-react";
+import { Edit, Trash, Trash2Icon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,13 +15,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import type { Connection } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  removeConnection,
+  updateConnectionName,
+} from "@/slices/connectionSlice";
 
 export default function DatabaseSection() {
-  const { connections } = useConnection();
+  const { connections } = useAppSelector((state) => state.connection);
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <h3 className="mt-2 mb-6 font-semibold">Databases</h3>
-      <div className="flex-1 overflow-y-auto pr-2">
+    <div className="overflow-y-auto px-4">
+      <h3 className="mb-3 font-semibold">Databases</h3>
+      <div>
         {connections.map((connection) => (
           <DatabaseItem key={connection.id} connection={connection} />
         ))}
@@ -32,7 +36,8 @@ export default function DatabaseSection() {
 }
 
 function DatabaseItem({ connection }: { connection: Connection }) {
-  const { updateConnectionName, removeConnection } = useConnection();
+  const dispatch = useAppDispatch();
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(connection.name);
 
@@ -45,7 +50,11 @@ function DatabaseItem({ connection }: { connection: Connection }) {
       return;
     }
 
-    updateConnectionName(connection.id, trimmed);
+    dispatch(updateConnectionName({ id: connection.id, name: trimmed }));
+  };
+
+  const handleRemoveConnection = (id: string) => {
+    dispatch(removeConnection(id));
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -59,8 +68,8 @@ function DatabaseItem({ connection }: { connection: Connection }) {
   };
 
   return (
-    <div className="flex items-center justify-between border-b py-3">
-      <div className="ml-2 flex items-center gap-4">
+    <div className="flex items-center justify-between border-b py-4">
+      <div className="flex items-center gap-4">
         {isEditing ? (
           <Input
             value={editedName}
@@ -107,7 +116,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
               <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
-                onClick={() => removeConnection(connection.id)}
+                onClick={() => handleRemoveConnection(connection.id)}
               >
                 Delete
               </AlertDialogAction>

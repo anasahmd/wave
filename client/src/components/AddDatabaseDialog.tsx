@@ -13,8 +13,8 @@ import { Field, FieldError, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { addDatabaseSchema } from "@/validations/database";
-import { api } from "@/services/apiClient";
-import { useConnection } from "@/providers/ConnectionProvider";
+import { addConnection } from "@/slices/connectionSlice";
+import { useAppDispatch } from "@/store";
 
 interface AddDatabaseDialogProps {
   open: boolean;
@@ -25,7 +25,7 @@ export default function AddDatabaseDialog({
   open,
   onOpenChange,
 }: AddDatabaseDialogProps) {
-  const { addConnection } = useConnection();
+  const dispatch = useAppDispatch();
 
   const form = useForm({
     resolver: zodResolver(addDatabaseSchema),
@@ -36,13 +36,10 @@ export default function AddDatabaseDialog({
   });
 
   const onSubmit = async ({ name, uri }: { name: string; uri: string }) => {
-    try {
-      const response = await api.connectDb({ name, uri });
-      addConnection(response);
+    const result = await dispatch(addConnection({ name, uri }));
+    if (addConnection.fulfilled.match(result)) {
       onOpenChange(false);
       form.reset({ name: "", uri: "" });
-    } catch {
-      // error toasted by interceptor
     }
   };
 

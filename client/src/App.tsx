@@ -6,10 +6,15 @@ import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
-import { ConnectionProvider } from "./providers/ConnectionProvider";
 import ChatProvider from "./providers/ChatProvider";
+import { useAppDispatch } from "./store";
+import { fetchConnections } from "./slices/connectionSlice";
 
 export function App() {
+  const dispatch = useAppDispatch();
+
+  dispatch(fetchConnections());
+
   return (
     <div>
       <Routes>
@@ -22,14 +27,12 @@ export function App() {
           path="/"
           element={
             <PrivateRoute>
-              <ConnectionProvider>
-                <ChatProvider>
-                  <SidebarProvider>
-                    <AppSidebar />
-                    <ChatArea />
-                  </SidebarProvider>
-                </ChatProvider>
-              </ConnectionProvider>
+              <ChatProvider>
+                <SidebarProvider>
+                  <AppSidebar />
+                  <ChatArea />
+                </SidebarProvider>
+              </ChatProvider>
             </PrivateRoute>
           }
         />

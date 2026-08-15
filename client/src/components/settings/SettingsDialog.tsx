@@ -44,7 +44,7 @@ export default function SettingsDialog({
           </nav>
 
           {/* Right content */}
-          <div className="mx-4 mt-16 flex min-h-0 flex-1 flex-col px-4">
+          <div className="mx-2 mt-16 flex min-h-0 flex-1 flex-col px-4">
             {activeSection === "account" && <AccountSection />}
             {activeSection === "database" && <DatabaseSection />}
           </div>

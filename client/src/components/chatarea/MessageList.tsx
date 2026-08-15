@@ -31,7 +31,10 @@ export default function MessageList() {
           key={message.id}
         >
           <MessageContent>
-            <Bubble variant={message.role === "user" ? "default" : "ghost"}>
+            <Bubble
+              variant={message.role === "user" ? "default" : "ghost"}
+              className={message.role === "assistant" ? "w-full" : ""}
+            >
               <BubbleContent
                 className={cn(
                   message.role === "assistant" ? "w-full" : "",
@@ -42,10 +45,10 @@ export default function MessageList() {
                   {message.content}
                 </MarkDown>
               </BubbleContent>
-              {message.role === "assistant" && message.sql_query && (
+              {message.role === "assistant" && message.query_used && (
                 <Collapsible className="ml-0.5">
                   <CollapsibleTrigger className="group mt-2 flex cursor-pointer items-center justify-between gap-1 text-xs">
-                    <span>SQL used</span>
+                    <span>Query used</span>
                     <ChevronRight
                       aria-hidden="true"
                       className="size-3 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-90"
@@ -53,7 +56,7 @@ export default function MessageList() {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                     <div className="pt-3 text-xs text-muted-foreground">
-                      {message.sql_query}
+                      {message.query_used}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>

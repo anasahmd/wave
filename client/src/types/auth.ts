@@ -26,6 +26,11 @@ export interface ChangePasswordPayload {
   newPassword: string;
 }
 
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+}
+
 export interface AuthState {
   isLoggedIn: boolean;
   user: User | null;
@@ -36,6 +41,7 @@ export interface AuthContextType extends AuthState {
   handleLogin: (user: User, token: string) => void;
   handleLogout: () => void;
   handleGuestLogin: (user: User, token: string) => void;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
 }
 
 export type AuthAction =
@@ -47,4 +53,8 @@ export type AuthAction =
   | {
       type: "SET_LOADING";
       payload: boolean;
+    }
+  | {
+      type: "UPDATE_PROFILE";
+      payload: User;
     };

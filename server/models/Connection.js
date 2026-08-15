@@ -20,7 +20,7 @@ const connectionSchema = new mongoose.Schema(
 		db_type: {
 			type: String,
 			required: true,
-			enum: ['postgres', 'mysql', 'better-sqlite3'],
+			enum: ['postgres', 'mysql', 'mongodb'],
 		},
 	},
 	{ timestamps: true },

@@ -10,14 +10,22 @@ connectionController.connect = async (req, res) => {
 	try {
 		const { uri, name } = req.body;
 
+		// Detect DB type from URI scheme
 		let dbType;
 		if (uri.startsWith('postgres://') || uri.startsWith('postgresql://'))
 			dbType = 'postgres';
 		else if (uri.startsWith('mysql://')) dbType = 'mysql';
+		else if (
+			uri.startsWith('mongodb://') ||
+			uri.startsWith('mongodb+srv://')
+		)
+			dbType = 'mongodb';
 		else
 			return res
 				.status(400)
-				.json({ error: 'Unsupported URI. Use postgres:// or mysql://' });
+				.json({
+					error: 'Unsupported URI. Use postgres://, mysql://, or mongodb://',
+				});
 
 		const encryptedUri = encrypt(uri);
 		const connection = await Connection.create({
@@ -82,8 +90,9 @@ connectionController.activate = async (req, res) => {
 
 		const connId = connection._id.toString();
 
+		// If already connected, return cached schema from the adapter
 		if (dbManager.isConnected({ userId: req.user.id, connectionId: connId })) {
-			const schema = dbManager.getSchema({
+			const adapter = dbManager.getAdapter({
 				userId: req.user.id,
 				connectionId: connId,
 			});
@@ -94,7 +103,7 @@ connectionController.activate = async (req, res) => {
 					db_type: connection.db_type,
 					is_active: true,
 				},
-				schema,
+				schema: adapter.schema,
 			});
 		}
 

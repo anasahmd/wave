@@ -10,18 +10,25 @@ import {
 import SchemaTable from "./SchemaTable";
 import ThreadList from "./ThreadList";
 import NewChat from "./NewChat";
+import { useAppSelector } from "@/store";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { switchingId } = useAppSelector((state) => state.connection);
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <DatabaseSwitcherMenu />
       </SidebarHeader>
-      <SidebarContent>
-        <SchemaTable />
-        <NewChat />
-        <ThreadList />
-      </SidebarContent>
+      {switchingId ? (
+        <SidebarContent>Loading...</SidebarContent>
+      ) : (
+        <SidebarContent>
+          <SchemaTable />
+          <NewChat />
+          <ThreadList />
+        </SidebarContent>
+      )}
+
       <SidebarFooter>
         <AppSidebarFooter />
       </SidebarFooter>

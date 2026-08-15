@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		sql_query: {
+		query_used: {
 			type: String,
 			default: null,
 		},

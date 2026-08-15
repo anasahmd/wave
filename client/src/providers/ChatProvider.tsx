@@ -8,7 +8,7 @@ import type {
   UpdateThreadTitlePayload,
 } from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
-import { useConnection } from "./ConnectionProvider";
+import { useAppSelector } from "@/store";
 
 const initialState: ChatState = {
   threads: [],
@@ -19,13 +19,13 @@ const initialState: ChatState = {
 
 export default function ChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { activeConnection } = useConnection();
+  const { activeConnectionId } = useAppSelector((state) => state.connection);
 
   useEffect(() => {
     const getThreads = async () => {
-      if (activeConnection) {
+      if (activeConnectionId) {
         try {
-          const threads = await api.getThreads(activeConnection.id);
+          const threads = await api.getThreads(activeConnectionId);
           dispatch({ type: "SET_THREADS", payload: threads });
         } catch (error) {
           console.log(error);
@@ -34,7 +34,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     };
 
     getThreads();
-  }, [activeConnection]);
+  }, [activeConnectionId]);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -55,14 +55,14 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   const sendMessage = async (message: string) => {
-    if (activeConnection) {
+    if (activeConnectionId) {
       dispatch({ type: "SET_STATUS", payload: "sending" });
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
           id: crypto.randomUUID(),
           role: "user",
-          sql_query: null,
+          query_used: null,
           content: message,
           created_at: new Date().toISOString(),
         },
@@ -71,7 +71,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       try {
         const response = await api.chat({
           message,
-          connectionId: activeConnection.id,
+          connectionId: activeConnectionId,
           threadId: state.activeThreadId,
         });
 

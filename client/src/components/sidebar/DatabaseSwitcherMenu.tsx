@@ -16,12 +16,29 @@ import {
 } from "@/components/ui/sidebar";
 import { useState } from "react";
 import AddDatabaseDialog from "../AddDatabaseDialog";
-import { useConnection } from "@/providers/ConnectionProvider";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { switchConnection } from "@/slices/connectionSlice";
+import { Spinner } from "../ui/spinner";
 
 export default function DatabaseSwitcherMenu() {
   const { isMobile } = useSidebar();
+  const dispatch = useAppDispatch();
 
-  const { connections, activeConnection, switchConnection } = useConnection();
+  const { connections, activeConnectionId, switchingId } = useAppSelector(
+    (state) => state.connection
+  );
+
+  const activeConnection = connections.find(
+    (connection) => connection.id === activeConnectionId
+  );
+
+  const switchingConnection = connections.find(
+    (connection) => connection.id === switchingId
+  );
+
+  const handleSwitchConnection = (id: string) => {
+    dispatch(switchConnection(id));
+  };
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
 
@@ -41,13 +58,23 @@ export default function DatabaseSwitcherMenu() {
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">
-                      {activeConnection?.name || "Wave"}
+                      {switchingConnection?.name ||
+                        activeConnection?.name ||
+                        "Wave"}
                     </span>
                     <span className="truncate text-xs">
-                      {activeConnection?.db_type || "Add database"}
+                      {switchingConnection?.db_type ||
+                        activeConnection?.db_type ||
+                        (connections.length > 0
+                          ? "Choose Database"
+                          : "Add database")}
                     </span>
                   </div>
-                  <ChevronsUpDown className="ml-auto" />
+                  {switchingConnection ? (
+                    <Spinner />
+                  ) : (
+                    <ChevronsUpDown className="ml-auto" />
+                  )}
                 </SidebarMenuButton>
               }
             ></DropdownMenuTrigger>
@@ -64,7 +91,7 @@ export default function DatabaseSwitcherMenu() {
                 {connections.map((connection) => (
                   <DropdownMenuItem
                     key={connection.id}
-                    onClick={() => switchConnection(connection.id)}
+                    onClick={() => handleSwitchConnection(connection.id)}
                     className="gap-2 p-2"
                   >
                     {connection.name}

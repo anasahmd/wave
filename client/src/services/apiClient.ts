@@ -57,6 +57,9 @@ export const api = {
   changePassword: (payload: ChangePasswordPayload) =>
     apiClient.put("/auth/password", payload),
 
+  updateProfile: (payload: { name: string; email: string }): Promise<User> =>
+    apiClient.patch("/auth/profile", payload),
+
   deleteAccount: (password: string) =>
     apiClient.delete("/auth/account", { data: { password } }),
 
@@ -81,7 +84,13 @@ export const api = {
   removeConnection: (id: string): Promise<Connection> =>
     apiClient.delete(`/connections/${id}`),
 
-  updateConnectionName: (id: string, name: string): Promise<Connection> =>
+  updateConnectionName: ({
+    id,
+    name,
+  }: {
+    id: string;
+    name: string;
+  }): Promise<Connection> =>
     apiClient.patch(`/connections/${id}/name`, { name }),
 
   // Chat

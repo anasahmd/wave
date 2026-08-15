@@ -12,26 +12,18 @@ export async function findDbConnection({ userId, connectionId }) {
 	if (!connection) throw new Error('Connection not found');
 
 	// Auto-reconnect if needed
-	if (!dbManager.isConnected({ userId: userId, connectionId })) {
+	if (!dbManager.isConnected({ userId, connectionId })) {
 		const uri = decrypt(connection.encrypted_uri);
 		await dbManager.connect({
-			userId: userId,
+			userId,
 			connectionId,
 			uri,
 		});
 	}
 
-	const dataSource = dbManager.getDataSource({
-		userId: userId,
-		connectionId,
-	});
+	const adapter = dbManager.getAdapter({ userId, connectionId });
 
-	const schema = dbManager.getSchema({
-		userId: userId,
-		connectionId,
-	});
-
-	return { dataSource, schema };
+	return { adapter, schema: adapter.schema };
 }
 
 export async function getOrCreateThread({

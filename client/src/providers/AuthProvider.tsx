@@ -71,9 +71,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success("You're logged in as guest user");
   };
 
+  const updateProfile = async (payload: { name: string; email: string }) => {
+    const updatedUser = await api.updateProfile(payload);
+    dispatch({ type: "UPDATE_PROFILE", payload: updatedUser });
+    toast.success("Profile updated");
+  };
+
   return (
     <AuthContext
-      value={{ ...state, handleLogin, handleGuestLogin, handleLogout }}
+      value={{
+        ...state,
+        handleLogin,
+        handleGuestLogin,
+        handleLogout,
+        updateProfile,
+      }}
     >
       {children}
     </AuthContext>

@@ -11,6 +11,9 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case "SET_LOADING": {
       return { ...state, loading: action.payload };
     }
+    case "UPDATE_PROFILE": {
+      return { ...state, user: action.payload };
+    }
     default: {
       throw new Error("Invalid action type");
     }

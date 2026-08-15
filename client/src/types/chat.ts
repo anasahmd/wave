@@ -10,7 +10,7 @@ export interface Thread {
 export interface Message {
   id: string;
   role: "user" | "assistant";
-  sql_query: string | null;
+  query_used: string | null;
   content: string;
   created_at: string;
 }

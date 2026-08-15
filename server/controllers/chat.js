@@ -3,7 +3,7 @@ import {
 	getOrCreateThread,
 } from '../services/chatService.js';
 import { createLLM } from '../services/llmService.js';
-import { createSqlAgent, invokeAgent } from '../services/agentService.js';
+import { createDbAgent, invokeAgent } from '../services/agentService.js';
 import Thread from '../models/Thread.js';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
@@ -15,15 +15,15 @@ chatController.chat = async (req, res) => {
 	try {
 		const user = await User.findById(req.user.id);
 		// Finding the DB connection
-		const { schema, dataSource } = await findDbConnection({
+		const { schema, adapter } = await findDbConnection({
 			connectionId,
 			userId: req.user.id,
 		});
 
 		// Invoke agent
-		const llm = createLLM(user.llm_config);
+		const llm = createLLM();
 
-		const agent = createSqlAgent({ model: llm, dataSource, schema });
+		const agent = createDbAgent({ model: llm, adapter, schema });
 
 		// Create or retrieve thread
 		const thread = await getOrCreateThread({
@@ -44,13 +44,13 @@ chatController.chat = async (req, res) => {
 		});
 
 		// Save assistant response
-		const sqlUsed =
+		const queryUsed =
 			executedQueries.length > 0 ? executedQueries.join(';\n') : null;
 
 		thread.messages.push({
 			role: 'assistant',
 			content: answer || 'Sorry, I was unable to generate a response.',
-			sql_query: sqlUsed,
+			query_used: queryUsed,
 		});
 		await thread.save();
 
