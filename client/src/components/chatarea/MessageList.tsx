@@ -93,7 +93,9 @@ export default function MessageList() {
                 <MarkerIcon>
                   <Spinner />
                 </MarkerIcon>
-                <MarkerContent className="shimmer">Thinking...</MarkerContent>
+                <MarkerContent className="shimmer">
+                  Generating response…
+                </MarkerContent>
               </Marker>
             </BubbleContent>
           </Bubble>

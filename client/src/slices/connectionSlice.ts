@@ -31,7 +31,8 @@ export const fetchConnections = createAsyncThunk(
     if (connections.length > 0) {
       // Prefer the last-used connection saved in localStorage, fallback to first
       const savedId = localStorage.getItem(STORAGE_KEY);
-      const target = connections.find((c) => c.id === savedId) ?? connections[0];
+      const target =
+        connections.find((c) => c.id === savedId) ?? connections[0];
       const response = await api.activateConnection(target.id);
       activeSchema = response.schema;
       activeConnectionId = target.id;
@@ -94,7 +95,9 @@ export const removeConnection = createAsyncThunk(
 const connectionSlice = createSlice({
   name: "connection",
   initialState,
-  reducers: {},
+  reducers: {
+    resetConnection: () => initialState,
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchConnections.fulfilled, (state, action) => {
       const { connections, activeConnectionId, activeSchema } = action.payload;
@@ -158,5 +161,7 @@ const connectionSlice = createSlice({
     });
   },
 });
+
+export const { resetConnection } = connectionSlice.actions;
 
 export default connectionSlice.reducer;

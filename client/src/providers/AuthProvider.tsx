@@ -1,6 +1,8 @@
 import AuthContext from "@/contexts/AuthContext";
 import authReducer from "@/reducers/auth";
 import { api } from "@/services/apiClient";
+import { resetConnection } from "@/slices/connectionSlice";
+import { useAppDispatch } from "@/store";
 import type { User } from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +17,7 @@ const initialState = {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const navigate = useNavigate();
+  const appDispatch = useAppDispatch();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
+    appDispatch(resetConnection());
     localStorage.removeItem("wave_token");
     navigate("/login");
     toast.success(`You're logged out`);

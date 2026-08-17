@@ -7,13 +7,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import ChatProvider from "./providers/ChatProvider";
-import { useAppDispatch } from "./store";
-import { fetchConnections } from "./slices/connectionSlice";
 
 export function App() {
-  const dispatch = useAppDispatch();
-
-  dispatch(fetchConnections());
 
   return (
     <div>

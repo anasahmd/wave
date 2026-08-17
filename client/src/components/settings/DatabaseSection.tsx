@@ -20,22 +20,36 @@ import {
   removeConnection,
   updateConnectionName,
 } from "@/slices/connectionSlice";
+import AddDatabaseDialog from "../AddDatabaseDialog";
 
 export default function DatabaseSection() {
   const { connections } = useAppSelector((state) => state.connection);
+  const [isAddDbOpen, setIsAddDbOpen] = useState(false);
+
   return (
-    <div className="overflow-y-auto px-4">
-      <h3 className="mb-3 font-semibold">Databases</h3>
-      {connections.length === 0 && (
-        <div className="mt-40 flex items-center justify-center">
+    <div className="flex h-full flex-col overflow-y-auto px-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-semibold">Databases</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsAddDbOpen(true)}
+        >
+          Add Database
+        </Button>
+      </div>
+      {connections.length === 0 ? (
+        <div className="mb-20 flex flex-1 items-center justify-center">
           <h3 className="font-semibold">No databases</h3>
         </div>
+      ) : (
+        <div>
+          {connections.map((connection) => (
+            <DatabaseItem key={connection.id} connection={connection} />
+          ))}
+        </div>
       )}
-      <div>
-        {connections.map((connection) => (
-          <DatabaseItem key={connection.id} connection={connection} />
-        ))}
-      </div>
+      <AddDatabaseDialog open={isAddDbOpen} onOpenChange={setIsAddDbOpen} />
     </div>
   );
 }

@@ -3,8 +3,10 @@ import {
   ChevronsUpDown,
   Code2,
   LogOut,
+  Moon,
   Settings2,
   Sparkles,
+  Sun,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,15 +27,16 @@ import {
 } from "@/components/ui/sidebar";
 import SettingsDialog from "@/components/settings/SettingsDialog";
 import { useAuth } from "@/providers/AuthProvider";
+import { useTheme } from "../theme-provider";
 
 export default function AppSidebar() {
   const { handleLogout, user } = useAuth();
   const { isMobile } = useSidebar();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  if (!user) {
-    return <p>Loading...</p>;
-  }
+  const { theme, setTheme } = useTheme();
+
+  if (!user) return null;
 
   return (
     <>
@@ -88,6 +91,19 @@ export default function AppSidebar() {
                   <Settings2 />
                   Settings
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
+                  {theme === "dark" ? (
+                    <>
+                      <Sun /> Light Theme
+                    </>
+                  ) : (
+                    <>
+                      <Moon /> Dark Theme
+                    </>
+                  )}
+                </DropdownMenuItem>
                 <a
                   href="https://github.com/anasahmd/wave"
                   target="_blank"
@@ -109,11 +125,7 @@ export default function AppSidebar() {
         </SidebarMenuItem>
       </SidebarMenu>
 
-      <SettingsDialog
-        open={isSettingsOpen}
-        onOpenChange={setIsSettingsOpen}
-        user={user}
-      />
+      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </>
   );
 }
