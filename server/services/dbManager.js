@@ -32,6 +32,23 @@ class DBManager {
 		);
 	}
 
+	#resetTimer(key) {
+		clearTimeout(this.timers.get(key));
+		this.timers.set(
+			key,
+			setTimeout(
+				() => {
+					console.log(`Auto-disconnecting idle connection: ${key}`);
+					const adapter = this.pool.get(key);
+					if (adapter?.isConnected) adapter.disconnect();
+					this.pool.delete(key);
+					this.timers.delete(key);
+				},
+				30 * 60 * 1000,
+			),
+		);
+	}
+
 	async connect({ userId, connectionId, uri }) {
 		const key = this.#key({ userId, connectionId });
 
@@ -49,14 +66,17 @@ class DBManager {
 		adapter.schema = schema;
 
 		this.pool.set(key, adapter);
+		this.#resetTimer(key);
 
 		return { type, schema };
 	}
 
 	getAdapter({ userId, connectionId }) {
-		const adapter = this.pool.get(this.#key({ userId, connectionId }));
+		const key = this.#key({ userId, connectionId });
+		const adapter = this.pool.get(key);
 		if (!adapter)
 			throw new Error('No active connection. Please connect first.');
+		this.#resetTimer(key);
 		return adapter;
 	}
 

@@ -1,4 +1,6 @@
 import { generateToken } from '../middleware/auth.js';
+import Connection from '../models/Connection.js';
+import Thread from '../models/Thread.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 
@@ -92,23 +94,28 @@ authController.me = async (req, res) => {
 };
 
 authController.guestLogin = async (req, res) => {
-	const guestId = crypto.randomUUID().slice(0, 8);
-	const user = await User.create({
-		name: `Guest-${guestId}`,
-		email: `guest-${guestId}@wave.local`,
-		password_hash: await bcrypt.hash(crypto.randomUUID(), 4),
-	});
+	try {
+		const guestId = crypto.randomUUID().slice(0, 8);
+		const user = await User.create({
+			name: `Guest-${guestId}`,
+			email: `guest-${guestId}@wave.local`,
+			password_hash: await bcrypt.hash(crypto.randomUUID(), 4),
+		});
 
-	const token = generateToken(user);
-	res.json({
-		token,
-		user: {
-			id: user._id,
-			name: user.name,
-			email: user.email,
-			created_at: user.createdAt,
-		},
-	});
+		const token = generateToken(user);
+		res.json({
+			token,
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				created_at: user.createdAt,
+			},
+		});
+	} catch (error) {
+		console.error('Gues login failed', error);
+		res.status(500).json({ error: 'Guest login failed' });
+	}
 };
 
 authController.changePassword = async (req, res) => {
@@ -170,7 +177,45 @@ authController.updateProfile = async (req, res) => {
 };
 
 authController.deleteAccount = async (req, res) => {
-	res.status(500).json({ error: 'Not implemented' });
+	try {
+		const { password } = req.body;
+		const user = await User.findById(req.user.id);
+		if (!user) return res.status(404).json({ error: 'User not found' });
+		const valid = await bcrypt.compare(password, user.password_hash);
+		if (!valid) return res.status(401).json({ error: 'Incorrect password' });
+		// Clean up connections, threads, checkpoints
+		const connections = await Connection.find({ user: user._id });
+		for (const conn of connections) {
+			await dbManager.disconnect({
+				userId: user._id.toString(),
+				connectionId: conn._id.toString(),
+			});
+		}
+		const threads = await Thread.find({ user: user._id }, { _id: 1 });
+		const threadIds = threads.map((t) => t._id.toString());
+
+		await Thread.deleteMany({ user: user._id });
+
+		if (threadIds.length > 0) {
+			const db = mongoose.connection.db;
+			await Promise.all([
+				db
+					.collection('checkpoints')
+					.deleteMany({ thread_id: { $in: threadIds } }),
+				db
+					.collection('checkpoint_writes')
+					.deleteMany({ thread_id: { $in: threadIds } }),
+				db
+					.collection('checkpoint_blobs')
+					.deleteMany({ thread_id: { $in: threadIds } }),
+			]);
+		}
+		await Connection.deleteMany({ user: user._id });
+		await user.deleteOne();
+		res.json({ message: 'Account deleted' });
+	} catch (err) {
+		res.status(500).json({ error: 'Failed to delete account' });
+	}
 };
 
 export default authController;

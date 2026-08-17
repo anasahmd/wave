@@ -52,13 +52,13 @@ export const api = {
 
   guestLogin: (): Promise<AuthResponse> => apiClient.post("/auth/guest"),
 
-  me: (): Promise<User> => apiClient.get("/auth/me"),
+  me: (): Promise<User> => apiClient.get("/auth/account"),
 
   changePassword: (payload: ChangePasswordPayload) =>
     apiClient.put("/auth/password", payload),
 
   updateProfile: (payload: { name: string; email: string }): Promise<User> =>
-    apiClient.patch("/auth/profile", payload),
+    apiClient.patch("/auth/account", payload),
 
   deleteAccount: (password: string) =>
     apiClient.delete("/auth/account", { data: { password } }),

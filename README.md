@@ -8,7 +8,7 @@ Wave is a full-stack web application that lets you connect to your databases (Po
 ┌─────────────────┐        ┌──────────────────────────────┐
 │  React (Vite)   │◄──────►│  Express API Server          │
 │  TailwindCSS v4 │  REST  │  LangChain/LangGraph Agent   │
-│  Redux Toolkit  │        │  Mongoose (MongoDB metadata)  │
+│  Redux Toolkit  │        │  Mongoose (MongoDB metadata) │
 └─────────────────┘        └──────┬───────────────────────┘
                                   │
                     ┌─────────────┼─────────────┐
@@ -19,14 +19,14 @@ Wave is a full-stack web application that lets you connect to your databases (Po
 
 ## Tech Stack
 
-| Layer     | Technology                                          |
-| --------- | --------------------------------------------------- |
-| Frontend  | React 19, Vite 8, TailwindCSS v4, Redux Toolkit    |
-| Backend   | Node.js, Express 5, Mongoose, LangChain, LangGraph |
-| AI        | OpenAI-compatible API (Groq, LM Studio, etc.)       |
-| DB Support| PostgreSQL (via TypeORM), MySQL (via TypeORM), MongoDB (native driver) |
-| Auth      | JWT (7-day expiry), bcrypt password hashing         |
-| Encryption| AES-256-GCM (Cryptr) for stored connection URIs     |
+| Layer      | Technology                                                             |
+| ---------- | ---------------------------------------------------------------------- |
+| Frontend   | React 19, Vite 8, TailwindCSS v4, Redux Toolkit                        |
+| Backend    | Node.js, Express 5, Mongoose, LangChain, LangGraph                     |
+| AI         | OpenAI-compatible API (Groq, LM Studio, etc.)                          |
+| DB Support | PostgreSQL (via TypeORM), MySQL (via TypeORM), MongoDB (native driver) |
+| Auth       | JWT, bcrypt password hashing                                           |
+| Encryption | AES-256-GCM (Cryptr) for stored connection URIs                        |
 
 ## Prerequisites
 
@@ -56,15 +56,15 @@ npm run dev
 
 **Required `.env` variables:**
 
-| Variable            | Description                                      | Example                            |
-| ------------------- | ------------------------------------------------ | ---------------------------------- |
-| `PORT`              | Server port                                      | `5000`                             |
-| `MONGO_URI`         | MongoDB connection string (app metadata)         | `mongodb://localhost:27017/wave`    |
-| `JWT_SECRET`        | Secret for signing JWTs                          | `a-long-random-string`             |
-| `ENCRYPTION_KEY`    | Secret for encrypting stored DB URIs             | `another-long-random-string`       |
-| `LLM_BASE_URL`     | OpenAI-compatible API base URL                   | `https://api.groq.com/openai/v1`   |
-| `LLM_API_KEY`       | API key for the LLM provider                    | `gsk_...`                          |
-| `LLM_MODEL`         | Model identifier                                 | `llama-3.1-8b-instant`             |
+| Variable         | Description                              | Example                          |
+| ---------------- | ---------------------------------------- | -------------------------------- |
+| `PORT`           | Server port                              | `5000`                           |
+| `MONGO_URI`      | MongoDB connection string (app metadata) | `mongodb://localhost:27017/wave` |
+| `JWT_SECRET`     | Secret for signing JWTs                  | `a-long-random-string`           |
+| `ENCRYPTION_KEY` | Secret for encrypting stored DB URIs     | `another-long-random-string`     |
+| `LLM_BASE_URL`   | OpenAI-compatible API base URL           | `https://api.groq.com/openai/v1` |
+| `LLM_API_KEY`    | API key for the LLM provider             | `gsk_...`                        |
+| `LLM_MODEL`      | Model identifier                         | `llama-3.1-8b-instant`           |
 
 Optional LangSmith tracing variables are also supported (see `.env.example`).
 
@@ -127,26 +127,26 @@ wave/
 
 ## API Endpoints
 
-| Method   | Endpoint                          | Auth | Description                  |
-| -------- | --------------------------------- | ---- | ---------------------------- |
-| POST     | `/api/auth/register`              | No   | Register a new user          |
-| POST     | `/api/auth/login`                 | No   | Login                        |
-| POST     | `/api/auth/guest`                 | No   | Guest login                  |
-| GET      | `/api/auth/me`                    | Yes  | Get current user             |
-| PUT      | `/api/auth/password`              | Yes  | Change password              |
-| PATCH    | `/api/auth/profile`               | Yes  | Update profile               |
-| POST     | `/api/connections/connect`        | Yes  | Add & connect a database     |
-| GET      | `/api/connections`                | Yes  | List connections             |
-| POST     | `/api/connections/:id/activate`   | Yes  | Activate a connection        |
-| POST     | `/api/connections/:id/disconnect` | Yes  | Disconnect                   |
-| DELETE   | `/api/connections/:id`            | Yes  | Remove connection & data     |
-| PATCH    | `/api/connections/:id/name`       | Yes  | Rename connection            |
-| POST     | `/api/chats`                      | Yes  | Send a chat message          |
-| GET      | `/api/chats/threads/:connId`      | Yes  | List threads for connection  |
-| GET      | `/api/chats/messages/:threadId`   | Yes  | Get messages in a thread     |
-| DELETE   | `/api/chats/threads/:threadId`    | Yes  | Delete a thread              |
-| PATCH    | `/api/chats/threads/:threadId/pin`| Yes  | Toggle thread pin            |
-| PATCH    | `/api/chats/threads/:threadId/title` | Yes | Update thread title       |
+| Method | Endpoint                             | Auth | Description                 |
+| ------ | ------------------------------------ | ---- | --------------------------- |
+| POST   | `/api/auth/register`                 | No   | Register a new user         |
+| POST   | `/api/auth/login`                    | No   | Login                       |
+| POST   | `/api/auth/guest`                    | No   | Guest login                 |
+| GET    | `/api/auth/me`                       | Yes  | Get current user            |
+| PUT    | `/api/auth/password`                 | Yes  | Change password             |
+| PATCH  | `/api/auth/profile`                  | Yes  | Update profile              |
+| POST   | `/api/connections/connect`           | Yes  | Add & connect a database    |
+| GET    | `/api/connections`                   | Yes  | List connections            |
+| POST   | `/api/connections/:id/activate`      | Yes  | Activate a connection       |
+| POST   | `/api/connections/:id/disconnect`    | Yes  | Disconnect                  |
+| DELETE | `/api/connections/:id`               | Yes  | Remove connection & data    |
+| PATCH  | `/api/connections/:id/name`          | Yes  | Rename connection           |
+| POST   | `/api/chats`                         | Yes  | Send a chat message         |
+| GET    | `/api/chats/threads/:connId`         | Yes  | List threads for connection |
+| GET    | `/api/chats/messages/:threadId`      | Yes  | Get messages in a thread    |
+| DELETE | `/api/chats/threads/:threadId`       | Yes  | Delete a thread             |
+| PATCH  | `/api/chats/threads/:threadId/pin`   | Yes  | Toggle thread pin           |
+| PATCH  | `/api/chats/threads/:threadId/title` | Yes  | Update thread title         |
 
 ## License
 

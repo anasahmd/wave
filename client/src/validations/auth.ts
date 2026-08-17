@@ -71,3 +71,13 @@ export const changePasswordSchema = z
     error: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+export const deleteAccountSchema = z.object({
+  password: z
+    .string({
+      error: (issue) =>
+        !issue.input ? "Password is required" : "Invalid password",
+    })
+    .min(1, { error: "Password is required" }),
+});
+

@@ -1,6 +1,7 @@
 import { Separator } from "../ui/separator";
 import ChangePassword from "./ChangePassword";
 import EditAccountInfo from "./EditAccountInfo";
+import DeleteAccount from "./DeleteAccount";
 
 export default function AccountSection() {
   return (
@@ -9,6 +10,8 @@ export default function AccountSection() {
       <EditAccountInfo />
       <Separator />
       <ChangePassword />
+      <Separator />
+      <DeleteAccount />
     </div>
   );
 }

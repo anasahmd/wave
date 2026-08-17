@@ -17,14 +17,14 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return { ...state, messages: [...state.messages, action.payload] };
     }
     case "DELETE_THREAD": {
-      const updaetdThreads = state.threads.filter(
+      const updatedThreads = state.threads.filter(
         (thread) => thread.id !== action.payload
       );
       const activeThreadId =
         state.activeThreadId !== action.payload ? state.activeThreadId : null;
       return {
         ...state,
-        threads: updaetdThreads,
+        threads: updatedThreads,
         activeThreadId,
         messages: [],
       };
