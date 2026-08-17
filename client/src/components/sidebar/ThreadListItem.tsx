@@ -14,8 +14,7 @@ import {
 import type { Thread } from "@/types";
 import { useChat } from "@/providers/ChatProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { api } from "@/services/apiClient";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Input } from "../ui/input";
 
 export default function ThreadListItem({ thread }: { thread: Thread }) {
@@ -31,13 +30,8 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(thread.title);
 
-  const handleDelete = async () => {
-    try {
-      const deletedThread = await api.deleteThread(thread.id);
-      deleteThread(deletedThread.id);
-    } catch {
-      // Error toasted by axios interceptor
-    }
+  const handleDelete = () => {
+    deleteThread(thread.id);
   };
 
   const handleSubmit = async () => {

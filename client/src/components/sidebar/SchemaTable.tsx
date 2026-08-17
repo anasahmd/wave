@@ -19,7 +19,7 @@ export default function SchemaTable() {
   if (!activeSchema) return null;
 
   return (
-    <Collapsible className="rounded-md">
+    <Collapsible className="group-data-[collapsible=icon]:hidden rounded-md">
       <SidebarGroup>
         <SidebarGroupLabel
           className="text-xs text-sidebar-foreground hover:bg-accent"

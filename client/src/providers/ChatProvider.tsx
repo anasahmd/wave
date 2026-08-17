@@ -1,12 +1,7 @@
 import ChatContext from "@/contexts/ChatContext";
 import chatReducer from "@/reducers/chat";
 import { api } from "@/services/apiClient";
-import type {
-  ChatState,
-  Message,
-  Thread,
-  UpdateThreadTitlePayload,
-} from "@/types";
+import type { ChatState, Thread, UpdateThreadTitlePayload } from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useAppSelector } from "@/store";
 
@@ -14,28 +9,35 @@ const initialState: ChatState = {
   threads: [],
   activeThreadId: "",
   messages: [],
-  status: "idle",
+  status: "loading",
 };
 
 export default function ChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { activeConnectionId } = useAppSelector((state) => state.connection);
 
+  // Fetch threads when active connection changes
   useEffect(() => {
     const getThreads = async () => {
       if (activeConnectionId) {
+        dispatch({ type: "SET_STATUS", payload: "loading" });
         try {
           const threads = await api.getThreads(activeConnectionId);
           dispatch({ type: "SET_THREADS", payload: threads });
         } catch (error) {
           console.log(error);
+        } finally {
+          dispatch({ type: "SET_STATUS", payload: "idle" });
         }
+      } else {
+        dispatch({ type: "SET_STATUS", payload: "idle" });
       }
     };
 
     getThreads();
   }, [activeConnectionId]);
 
+  // Fetch messages when active thread changes
   useEffect(() => {
     const getMessages = async () => {
       if (state.activeThreadId) {
@@ -87,8 +89,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  function deleteThread(threadId: string) {
-    dispatch({ type: "DELETE_THREAD", payload: threadId });
+  async function deleteThread(threadId: string) {
+    try {
+      const deletedThread = await api.deleteThread(threadId);
+      dispatch({ type: "DELETE_THREAD", payload: deletedThread.id });
+    } catch {
+      // error toasted by interceptor
+    }
   }
 
   function addThread(thread: Thread) {

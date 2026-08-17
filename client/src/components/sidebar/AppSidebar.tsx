@@ -4,27 +4,56 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuSkeleton,
   SidebarRail,
 } from "../ui/sidebar";
 import SchemaTable from "./SchemaTable";
 import ThreadList from "./ThreadList";
 import NewChat from "./NewChat";
 import { useAppSelector } from "@/store";
+import { Skeleton } from "../ui/skeleton";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { switchingId } = useAppSelector((state) => state.connection);
+  const { switchingId, loading, activeConnectionId } = useAppSelector(
+    (state) => state.connection
+  );
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <DatabaseSwitcherMenu />
       </SidebarHeader>
-      {switchingId ? (
-        <SidebarContent>Loading...</SidebarContent>
+      {loading || switchingId ? (
+        <SidebarContent>
+          {/* Schema section skeleton */}
+          <SidebarGroup>
+            <Skeleton className="mb-2 h-6 rounded-md" />
+          </SidebarGroup>
+
+          {/* New chat button skeleton */}
+          <SidebarGroup>
+            <Skeleton className="mb-4 h-6 rounded-md" />
+          </SidebarGroup>
+
+          {/* Thread list skeleton */}
+          <SidebarGroup>
+            <Skeleton className="mt-2 mb-2 h-4 rounded-md" />
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <SidebarMenuSkeleton key={index} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
       ) : (
         <SidebarContent>
           <SchemaTable />
-          <NewChat />
+          {activeConnectionId && <NewChat />}
           <ThreadList />
         </SidebarContent>
       )}

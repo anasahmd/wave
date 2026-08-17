@@ -24,9 +24,8 @@ export default function DatabaseSwitcherMenu() {
   const { isMobile } = useSidebar();
   const dispatch = useAppDispatch();
 
-  const { connections, activeConnectionId, switchingId } = useAppSelector(
-    (state) => state.connection
-  );
+  const { connections, activeConnectionId, switchingId, loading } =
+    useAppSelector((state) => state.connection);
 
   const activeConnection = connections.find(
     (connection) => connection.id === activeConnectionId
@@ -63,11 +62,13 @@ export default function DatabaseSwitcherMenu() {
                         "Wave"}
                     </span>
                     <span className="truncate text-xs">
-                      {switchingConnection?.db_type ||
-                        activeConnection?.db_type ||
-                        (connections.length > 0
-                          ? "Choose Database"
-                          : "Add database")}
+                      {loading
+                        ? "Loading..."
+                        : switchingConnection?.db_type ||
+                          activeConnection?.db_type ||
+                          (connections.length > 0
+                            ? "Choose Database"
+                            : "No databases")}
                     </span>
                   </div>
                   {switchingConnection ? (
@@ -84,21 +85,25 @@ export default function DatabaseSwitcherMenu() {
               side={isMobile ? "bottom" : "right"}
               sideOffset={4}
             >
-              <DropdownMenuGroup>
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Databases
-                </DropdownMenuLabel>
-                {connections.map((connection) => (
-                  <DropdownMenuItem
-                    key={connection.id}
-                    onClick={() => handleSwitchConnection(connection.id)}
-                    className="gap-2 p-2"
-                  >
-                    {connection.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
+              {connections.length > 0 && (
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    Databases
+                  </DropdownMenuLabel>
+                  {connections.map((connection) => (
+                    <DropdownMenuItem
+                      key={connection.id}
+                      onClick={() => handleSwitchConnection(connection.id)}
+                      className="gap-2 p-2"
+                    >
+                      {connection.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              )}
+
+              {connections.length > 0 && <DropdownMenuSeparator />}
+
               <DropdownMenuItem
                 className="gap-2 p-2"
                 onClick={() => setIsAddDatabaseOpen(true)}

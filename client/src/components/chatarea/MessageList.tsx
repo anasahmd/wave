@@ -11,11 +11,13 @@ import {
 import { ChevronRight } from "lucide-react";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import { Marker, MarkerContent, MarkerIcon } from "../ui/marker";
+import { Spinner } from "../ui/spinner";
 
 export default function MessageList() {
   const { messages, status } = useChat();
 
-  const isPending = status === "sending" || status === "loading";
+  const isPending = status === "sending";
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,29 +71,12 @@ export default function MessageList() {
         <Message className="my-7">
           <Bubble variant="ghost">
             <BubbleContent className="w-full">
-              <div className="flex items-center gap-1 py-1">
-                <span
-                  className="size-2 rounded-full bg-muted-foreground"
-                  style={{
-                    animation: "bounce-dot 1.4s infinite ease-in-out both",
-                    animationDelay: "0s",
-                  }}
-                />
-                <span
-                  className="size-2 rounded-full bg-muted-foreground"
-                  style={{
-                    animation: "bounce-dot 1.4s infinite ease-in-out both",
-                    animationDelay: "0.16s",
-                  }}
-                />
-                <span
-                  className="size-2 rounded-full bg-muted-foreground"
-                  style={{
-                    animation: "bounce-dot 1.4s infinite ease-in-out both",
-                    animationDelay: "0.32s",
-                  }}
-                />
-              </div>
+              <Marker role="status">
+                <MarkerIcon>
+                  <Spinner />
+                </MarkerIcon>
+                <MarkerContent className="shimmer">Thinking...</MarkerContent>
+              </Marker>
             </BubbleContent>
           </Bubble>
         </Message>

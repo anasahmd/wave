@@ -1,17 +1,29 @@
 import { SquarePen } from "lucide-react";
-import { Button } from "../ui/button";
 import { useChat } from "@/providers/ChatProvider";
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "../ui/sidebar";
 
 export default function NewChat() {
   const { activeThreadId, setActiveThread } = useChat();
+
   return (
-    <Button
-      className={`mx-2 justify-start gap-2 text-xs ${activeThreadId ? "" : "bg-accent"}`}
-      variant="ghost"
-      onClick={() => setActiveThread("")}
-    >
-      <SquarePen />
-      <span>New chat</span>
-    </Button>
+    <SidebarGroup>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            tooltip="New Chat"
+            className={activeThreadId ? "" : "bg-accent"}
+            onClick={() => setActiveThread("")}
+          >
+            <SquarePen />
+            <span>New chat</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarGroup>
   );
 }

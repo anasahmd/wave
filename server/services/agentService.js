@@ -141,7 +141,6 @@ export async function invokeAgent({ agent, message, threadId }) {
 			(msg) => msg._getType?.() === 'human',
 		);
 		const currentTurnMessages = allMessages.slice(userMsgIndex);
-		console.log(currentTurnMessages);
 
 		const executedQueries = currentTurnMessages
 			.flatMap((msg) => msg.tool_calls ?? [])
