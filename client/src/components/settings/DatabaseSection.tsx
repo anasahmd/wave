@@ -26,6 +26,11 @@ export default function DatabaseSection() {
   return (
     <div className="overflow-y-auto px-4">
       <h3 className="mb-3 font-semibold">Databases</h3>
+      {connections.length === 0 && (
+        <div className="mt-40 flex items-center justify-center">
+          <h3 className="font-semibold">No databases</h3>
+        </div>
+      )}
       <div>
         {connections.map((connection) => (
           <DatabaseItem key={connection.id} connection={connection} />

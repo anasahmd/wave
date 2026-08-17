@@ -88,10 +88,16 @@ export default function AppSidebar() {
                   <Settings2 />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Code2 />
-                  Source Code
-                </DropdownMenuItem>
+                <a
+                  href="https://github.com/anasahmd/wave"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <DropdownMenuItem>
+                    <Code2 />
+                    Source Code
+                  </DropdownMenuItem>
+                </a>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>

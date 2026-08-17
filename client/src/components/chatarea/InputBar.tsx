@@ -54,7 +54,7 @@ export default function InputBar() {
         className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         disabled={isDisabled}
       >
-        {isPending ? <Spinner /> : <ArrowUp className="size-5" />}
+        <ArrowUp className="size-5" />
       </Button>
     </form>
   );

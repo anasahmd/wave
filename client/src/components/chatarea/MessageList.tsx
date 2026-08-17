@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Waves } from "lucide-react";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { Marker, MarkerContent, MarkerIcon } from "../ui/marker";
@@ -23,6 +23,24 @@ export default function MessageList() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  if (messages.length === 0 && !isPending) {
+    return (
+      <div className="flex min-h-full flex-col items-center justify-center gap-3">
+        <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Waves className="size-6" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold tracking-tight">
+            What do you want to know?
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ask questions about your data in plain English.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-full flex-col justify-end">
