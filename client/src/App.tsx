@@ -1,15 +1,11 @@
 import { AuthLayout } from "@/components/layouts/AuthLayout";
-import ChatArea from "@/components/chatarea/ChatArea";
-import { AppSidebar } from "@/components/sidebar/AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
-import ChatProvider from "./providers/ChatProvider";
+import Home from "./pages/Home";
 
 export function App() {
-
   return (
     <div>
       <Routes>
@@ -22,12 +18,7 @@ export function App() {
           path="/"
           element={
             <PrivateRoute>
-              <ChatProvider>
-                <SidebarProvider>
-                  <AppSidebar />
-                  <ChatArea />
-                </SidebarProvider>
-              </ChatProvider>
+              <Home />
             </PrivateRoute>
           }
         />

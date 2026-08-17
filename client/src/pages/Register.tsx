@@ -8,6 +8,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { api } from "@/services/apiClient";
 import { useAuth } from "@/providers/AuthProvider";
 import type { RegisterPayload } from "@/types";
+import { Spinner } from "@/components/ui/spinner";
 
 const Register = () => {
   const { handleLogin } = useAuth();
@@ -21,6 +22,8 @@ const Register = () => {
       confirmPassword: "",
     },
   });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   const onSubmit = async ({ email, password, name }: RegisterPayload) => {
     try {
@@ -57,6 +60,7 @@ const Register = () => {
                   {...field}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   placeholder="Full Name"
                   autoComplete="name"
                   className="rounded-md"
@@ -84,6 +88,7 @@ const Register = () => {
                   id={field.name}
                   type="email"
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   placeholder="Email"
                   autoComplete="email"
                   className="rounded-md"
@@ -111,6 +116,7 @@ const Register = () => {
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   autoComplete="new-password"
                   placeholder="Password"
                   className="rounded-md"
@@ -138,6 +144,7 @@ const Register = () => {
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   autoComplete="new-password"
                   placeholder="Confirm Password"
                   className="rounded-md"
@@ -152,9 +159,11 @@ const Register = () => {
           <div>
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
             >
-              Register
+              {isSubmitting && <Spinner />}
+              {isSubmitting ? "Registering..." : "Register"}
             </Button>
           </div>
         </form>

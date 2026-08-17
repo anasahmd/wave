@@ -8,9 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/services/apiClient";
 import { useAuth } from "@/providers/AuthProvider";
 import type { LoginPayload } from "@/types";
+import { Spinner } from "@/components/ui/spinner";
+import { useState } from "react";
 
 const Login = () => {
   const { handleLogin, handleGuestLogin } = useAuth();
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -19,6 +22,9 @@ const Login = () => {
       password: "",
     },
   });
+
+  const isSubmitting = form.formState.isSubmitting;
+  const isLoading = isSubmitting || isGuestLoading;
 
   const onSubmit = async ({ email, password }: LoginPayload) => {
     try {
@@ -32,10 +38,13 @@ const Login = () => {
 
   const onGuestLogin = async () => {
     try {
+      setIsGuestLoading(true);
       const { user, token } = await api.guestLogin();
       handleGuestLogin(user, token);
     } catch {
       // error toasted by interceptor
+    } finally {
+      setIsGuestLoading(false);
     }
   };
 
@@ -64,6 +73,7 @@ const Login = () => {
                   id={field.name}
                   type="email"
                   aria-invalid={fieldState.invalid}
+                  disabled={isLoading}
                   placeholder="Email"
                   autoComplete="email"
                   className="rounded-md"
@@ -90,6 +100,7 @@ const Login = () => {
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
+                  disabled={isLoading}
                   autoComplete="current-password"
                   placeholder="Password"
                   className="rounded-md"
@@ -101,28 +112,26 @@ const Login = () => {
             )}
           />
 
-          {/* <div className="flex items-center justify-between">
-            <Link to="/forgot-password" className="text-sm hover:underline">
-              Forgot password?
-            </Link>
-          </div> */}
-
           <div>
             <Button
               type="submit"
+              disabled={isLoading}
               className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
             >
-              Login
+              {isSubmitting && <Spinner />}
+              {isSubmitting ? "Logging in..." : "Login"}
             </Button>
           </div>
         </form>
 
         <Button
-          type="submit"
+          type="button"
+          disabled={isLoading}
           className="text-md w-full cursor-pointer rounded-md font-medium"
           onClick={onGuestLogin}
         >
-          Login as Guest
+          {isGuestLoading && <Spinner />}
+          {isGuestLoading ? "Logging in as Guest..." : "Login as Guest"}
         </Button>
         <div className="mt-8 text-center">
           Don't have an account?{" "}

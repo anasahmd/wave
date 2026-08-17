@@ -150,4 +150,4 @@ wave/
 
 ## License
 
-ISC
+GPLv2
