@@ -26,6 +26,7 @@
 		"mysql2": "^3.23.2",
 		"node-sql-parser": "^5.4.0",
 		"pg": "^8.22.0",
+		"rotating-file-stream": "^3.2.10",
 		"typeorm": "^1.1.0",
 		"zod": "^4.4.3"
 	},

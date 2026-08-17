@@ -15,7 +15,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return { ...state, user: action.payload };
     }
     default: {
-      throw new Error("Invalid action type");
+      return state;
     }
   }
 };

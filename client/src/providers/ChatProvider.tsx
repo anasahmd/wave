@@ -5,7 +5,7 @@ import type { ChatState, Thread, UpdateThreadTitlePayload } from "@/types";
 import { useContext, useEffect, useReducer, type ReactNode } from "react";
 import { useAppSelector } from "@/store";
 
-const initialState: ChatState = {
+export const chatInitialState: ChatState = {
   threads: [],
   activeThreadId: "",
   messages: [],
@@ -13,7 +13,7 @@ const initialState: ChatState = {
 };
 
 export default function ChatProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(chatReducer, initialState);
+  const [state, dispatch] = useReducer(chatReducer, chatInitialState);
   const { activeConnectionId } = useAppSelector((state) => state.connection);
 
   // Fetch threads when active connection changes
@@ -51,6 +51,16 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     };
     getMessages();
   }, [state.activeThreadId]);
+
+  // Listen for logout event to reset chat state
+  useEffect(() => {
+    const handleLogout = () => {
+      dispatch({ type: "RESET_CHAT" });
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+  }, []);
 
   const setActiveThread = async (threadId: string) => {
     dispatch({ type: "SET_ACTIVE_THREAD", payload: threadId });
@@ -132,6 +142,10 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function resetChat() {
+    dispatch({ type: "RESET_CHAT" });
+  }
+
   return (
     <ChatContext
       value={{
@@ -145,6 +159,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         sendMessage,
         pinThread,
         updateThreadTitle,
+        resetChat,
       }}
     >
       {children}

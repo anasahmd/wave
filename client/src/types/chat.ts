@@ -50,4 +50,5 @@ export interface ChatContextType extends ChatState {
   sendMessage: (text: string) => void;
   pinThread: (threadId: string) => void;
   updateThreadTitle: (payload: UpdateThreadTitlePayload) => void;
+  resetChat: () => void;
 }

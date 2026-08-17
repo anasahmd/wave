@@ -6,7 +6,7 @@ import authRouter from './routes/auth.js';
 import { authenticate } from './middleware/auth.js';
 import connectionRouter from './routes/connection.js';
 import morgan from 'morgan';
-import fs from 'fs';
+import { createStream } from 'rotating-file-stream';
 import path from 'path';
 import chatRouter from './routes/chat.js';
 
@@ -19,12 +19,11 @@ app.use(cors());
 app.use(express.json());
 
 //logging
-var accessLogStream = fs.createWriteStream(
-	path.join(import.meta.dirname, 'access.log'),
-	{
-		flags: 'a',
-	},
-);
+const accessLogStream = createStream('access.log', {
+	interval: '1d', // rotate daily
+	path: path.join(import.meta.dirname, 'logs'),
+});
+
 app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use('/api/auth', authRouter);

@@ -1,3 +1,4 @@
+import { chatInitialState } from "@/providers/ChatProvider";
 import type { ChatAction, ChatState } from "@/types";
 
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
@@ -45,6 +46,9 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
           thread.id === action.payload.id ? action.payload : thread
         ),
       };
+    }
+    case "RESET_CHAT": {
+      return chatInitialState;
     }
     default: {
       return state;

@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     appDispatch(resetConnection());
+    window.dispatchEvent(new Event("auth:logout"));
     localStorage.removeItem("wave_token");
     navigate("/login");
     toast.success(`You're logged out`);
