@@ -14,6 +14,7 @@ class DBManager {
 	// Value: adapter instance (PostgresAdapter, MySQLAdapter, MongoAdapter, etc.)
 	constructor() {
 		this.pool = new Map();
+		this.timers = new Map();
 	}
 
 	#key({ userId, connectionId }) {
@@ -54,7 +55,8 @@ class DBManager {
 
 	getAdapter({ userId, connectionId }) {
 		const adapter = this.pool.get(this.#key({ userId, connectionId }));
-		if (!adapter) throw new Error('No active connection. Please connect first.');
+		if (!adapter)
+			throw new Error('No active connection. Please connect first.');
 		return adapter;
 	}
 

@@ -30,6 +30,13 @@ app.use('/api/auth', authRouter);
 app.use('/api/connections', authenticate, connectionRouter);
 app.use('/api/chats', authenticate, chatRouter);
 
+app.use((err, req, res, next) => {
+	console.error(err);
+	res.status(err.status || 500).json({
+		error: err.message || 'Internal server error',
+	});
+});
+
 app.listen(PORT, () => {
 	console.log(`Server running on PORT: ${PORT}`);
 });
