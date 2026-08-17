@@ -115,7 +115,7 @@ export function createDbAgent({ model, adapter, schema }) {
 
 export async function invokeAgent({ agent, message, threadId }) {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 155000);
+	const timeout = setTimeout(() => controller.abort(), 175000);
 
 	try {
 		const result = await agent.invoke(
@@ -213,5 +213,7 @@ export async function invokeAgent({ agent, message, threadId }) {
 		}
 
 		throw err;
+	} finally {
+		clearTimeout(timeout);
 	}
 }

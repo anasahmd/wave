@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
-  timeout: 60000, // 60 seconds timeout
+  timeout: 180000, // 3 minutes timeout
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
