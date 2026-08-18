@@ -22,6 +22,11 @@ const connectionSchema = new mongoose.Schema(
 			required: true,
 			enum: ['postgres', 'mysql', 'mongodb'],
 		},
+		custom_instructions: {
+			type: String,
+			trim: true,
+			default: '',
+		},
 	},
 	{ timestamps: true },
 );

@@ -15,7 +15,7 @@ chatController.chat = async (req, res) => {
 	try {
 		const user = await User.findById(req.user.id);
 		// Finding the DB connection
-		const { schema, adapter } = await findDbConnection({
+		const { schema, adapter, customInstructions } = await findDbConnection({
 			connectionId,
 			userId: req.user.id,
 		});
@@ -23,7 +23,12 @@ chatController.chat = async (req, res) => {
 		// Invoke agent
 		const llm = createLLM();
 
-		const agent = createDbAgent({ model: llm, adapter, schema });
+		const agent = createDbAgent({
+			model: llm,
+			adapter,
+			schema,
+			customInstructions,
+		});
 
 		// Create or retrieve thread
 		const thread = await getOrCreateThread({

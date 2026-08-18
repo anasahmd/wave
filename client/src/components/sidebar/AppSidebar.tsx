@@ -11,9 +11,10 @@ import {
   SidebarMenuSkeleton,
   SidebarRail,
 } from "../ui/sidebar";
-import SchemaTable from "./SchemaTable";
+import SchemaItem from "./SchemaItem";
+import BusinessRulesItem from "./BusinessRulesItem";
 import ThreadList from "./ThreadList";
-import NewChat from "./NewChat";
+import NewChatItem from "./NewChatItem";
 import { useAppSelector } from "@/store";
 import { Skeleton } from "../ui/skeleton";
 
@@ -51,9 +52,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         </SidebarContent>
       ) : (
-        <SidebarContent>
-          <SchemaTable />
-          {activeConnectionId && <NewChat />}
+        <SidebarContent className="gap-1">
+          <BusinessRulesItem />
+          <SchemaItem />
+          {activeConnectionId && <NewChatItem />}
           <ThreadList />
         </SidebarContent>
       )}

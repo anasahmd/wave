@@ -3,6 +3,7 @@ export interface Connection {
   name: string;
   db_type: string;
   is_active: boolean;
+  custom_instructions?: string;
 }
 
 export interface Column {

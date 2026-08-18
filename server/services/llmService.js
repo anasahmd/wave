@@ -15,6 +15,7 @@ export const createLLM = () => {
 		model,
 		temperature: 0,
 		apiKey,
+		maxRetries: 1,
 		configuration: {
 			baseURL,
 		},

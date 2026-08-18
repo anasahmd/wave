@@ -47,6 +47,7 @@ connectionController.connect = async (req, res) => {
 					id: connection._id,
 					name: connection.name,
 					db_type: connection.db_type,
+					custom_instructions: connection.custom_instructions || '',
 					is_active: true,
 				},
 				schema: result.schema,
@@ -64,13 +65,14 @@ connectionController.connect = async (req, res) => {
 
 connectionController.list = async (req, res) => {
 	let connections = await Connection.find({ user: req.user.id })
-		.select('name db_type createdAt')
+		.select('name db_type custom_instructions createdAt')
 		.sort({ createdAt: -1 });
 
 	connections = connections.map((conn) => ({
 		id: conn._id,
 		name: conn.name,
 		db_type: conn.db_type,
+		custom_instructions: conn.custom_instructions || '',
 		createdAt: conn.createdAt,
 		is_active: dbManager.isConnected({
 			userId: req.user.id,
@@ -101,6 +103,7 @@ connectionController.activate = async (req, res) => {
 					id: connection._id,
 					name: connection.name,
 					db_type: connection.db_type,
+					custom_instructions: connection.custom_instructions || '',
 					is_active: true,
 				},
 				schema: adapter.schema,
@@ -119,6 +122,7 @@ connectionController.activate = async (req, res) => {
 				id: connection._id,
 				name: connection.name,
 				db_type: connection.db_type,
+				custom_instructions: connection.custom_instructions || '',
 				is_active: true,
 			},
 			schema: result.schema,
@@ -214,6 +218,35 @@ connectionController.updateName = async (req, res) => {
 		res.json(updatedConnection);
 	} catch (error) {
 		res.status(500).json({ error: 'Failed to update connection' });
+	}
+};
+
+connectionController.updateInstructions = async (req, res) => {
+	const { id } = req.params;
+	const { custom_instructions } = req.body;
+
+	try {
+		const updatedConnection = await Connection.findOneAndUpdate(
+			{ _id: id, user: req.user.id },
+			{ custom_instructions: (custom_instructions || '').trim() },
+			{ returnDocument: 'after' },
+		);
+
+		if (!updatedConnection)
+			return res.status(404).json({ error: 'Connection not found' });
+
+		res.json({
+			id: updatedConnection._id,
+			name: updatedConnection.name,
+			db_type: updatedConnection.db_type,
+			custom_instructions: updatedConnection.custom_instructions || '',
+			is_active: dbManager.isConnected({
+				userId: req.user.id,
+				connectionId: updatedConnection._id.toString(),
+			}),
+		});
+	} catch (error) {
+		res.status(500).json({ error: 'Failed to update custom instructions' });
 	}
 };
 

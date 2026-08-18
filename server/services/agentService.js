@@ -1,4 +1,4 @@
-import { createAgent, tool } from 'langchain';
+import { createAgent, tool, summarizationMiddleware } from 'langchain';
 import { MongoDBSaver } from '@langchain/langgraph-checkpoint-mongodb';
 import z from 'zod';
 import mongoose from 'mongoose';
@@ -29,7 +29,12 @@ function formatSchema(schema) {
 		.join('\n\n');
 }
 
-export function createDbAgent({ model, adapter, schema }) {
+export function createDbAgent({
+	model,
+	adapter,
+	schema,
+	customInstructions = '',
+}) {
 	const {
 		name: toolName,
 		description: toolDescription,
@@ -66,6 +71,10 @@ export function createDbAgent({ model, adapter, schema }) {
 		},
 	);
 
+	const businessRulesSection = customInstructions
+		? `\n    ## Business Rules & Terminology\n    ${customInstructions}\n`
+		: '';
+
 	const systemPrompt = `You are Wave, an expert database analyst created by Anas Ahmad (anasahmad.dev). You help authorized administrators explore their internal data using natural language.
 
     ## Authorization & Data Context
@@ -81,6 +90,7 @@ export function createDbAgent({ model, adapter, schema }) {
     ${formatSchema(schema)}
 
     ${adapter.instructions}
+    ${businessRulesSection}
 
     ## Workflow
     1. **Understand**: Read the user's question carefully. Identify relevant tables/collections and columns/fields from the schema.
@@ -110,12 +120,15 @@ export function createDbAgent({ model, adapter, schema }) {
 		tools: [queryTool],
 		checkpointer: getCheckpointer(),
 		systemPrompt,
+		middleware: [
+			summarizationMiddleware({ model, trigger: { tokens: 10000 } }),
+		],
 	});
 }
 
 export async function invokeAgent({ agent, message, threadId }) {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 175000);
+	const timeout = setTimeout(() => controller.abort(), 175 * 1000); // 2 minutes 55 second
 
 	try {
 		const result = await agent.invoke(
@@ -124,12 +137,10 @@ export async function invokeAgent({ agent, message, threadId }) {
 			},
 			{
 				configurable: { thread_id: threadId },
-				recursionLimit: 10,
+				recursionLimit: 25,
 				signal: controller.signal,
 			},
 		);
-
-		// console.log(result);
 
 		const allMessages = result.messages;
 		const lastMessage = allMessages[allMessages.length - 1];

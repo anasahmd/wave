@@ -23,7 +23,11 @@ export async function findDbConnection({ userId, connectionId }) {
 
 	const adapter = dbManager.getAdapter({ userId, connectionId });
 
-	return { adapter, schema: adapter.schema };
+	return {
+		adapter,
+		schema: adapter.schema,
+		customInstructions: connection.custom_instructions || '',
+	};
 }
 
 export async function getOrCreateThread({

@@ -1,6 +1,6 @@
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { Edit, Trash, Trash2Icon } from "lucide-react";
+import { Edit, FileText, Trash, Trash2Icon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -21,6 +21,7 @@ import {
   updateConnectionName,
 } from "@/slices/connectionSlice";
 import AddDatabaseDialog from "../AddDatabaseDialog";
+import BusinessRulesDialog from "../BusinessRulesDialog";
 
 export default function DatabaseSection() {
   const { connections } = useAppSelector((state) => state.connection);
@@ -61,6 +62,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
   const [editedName, setEditedName] = useState(connection.name);
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   const handleSubmit = () => {
     setIsEditing(false);
@@ -112,7 +114,15 @@ function DatabaseItem({ connection }: { connection: Connection }) {
           {connection.db_type}
         </span>
       </div>
-      <div className="flex gap-4">
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          title="Business Rules & Instructions"
+          onClick={() => setIsInstructionsOpen(true)}
+        >
+          <FileText className="h-4 w-4" />
+        </Button>
+
         {!isEditing && (
           <Button
             variant="outline"
@@ -121,7 +131,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
               setIsEditing(true);
             }}
           >
-            <Edit />
+            <Edit className="h-4 w-4" />
           </Button>
         )}
 
@@ -132,7 +142,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
           <AlertDialogTrigger
             render={
               <Button variant="destructive">
-                <Trash />
+                <Trash className="h-4 w-4" />
               </Button>
             }
           />
@@ -162,6 +172,12 @@ function DatabaseItem({ connection }: { connection: Connection }) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <BusinessRulesDialog
+          open={isInstructionsOpen}
+          onOpenChange={setIsInstructionsOpen}
+          connection={connection}
+        />
       </div>
     </div>
   );

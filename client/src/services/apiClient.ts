@@ -94,6 +94,17 @@ export const api = {
   }): Promise<Connection> =>
     apiClient.patch(`/connections/${id}/name`, { name }),
 
+  updateConnectionInstructions: ({
+    id,
+    custom_instructions,
+  }: {
+    id: string;
+    custom_instructions: string;
+  }): Promise<Connection> =>
+    apiClient.patch(`/connections/${id}/instructions`, {
+      custom_instructions,
+    }),
+
   // Chat
   chat: ({
     message,

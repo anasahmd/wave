@@ -7,20 +7,23 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 
-export default function NewChat() {
+export default function NewChatItem() {
   const { activeThreadId, setActiveThread } = useChat();
 
   return (
-    <SidebarGroup>
+    <SidebarGroup className="py-0.5">
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="New Chat"
-            className={activeThreadId ? "" : "bg-accent"}
+            title="Start New Chat"
+            className={`text-sidebar-foreground hover:bg-accent ${activeThreadId ? "" : "bg-accent"}`}
             onClick={() => setActiveThread("")}
           >
-            <SquarePen />
-            <span>New chat</span>
+            <div className="flex items-center gap-2">
+              <SquarePen className="size-4" />
+              <span className="truncate text-sm font-medium">New Chat</span>
+            </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

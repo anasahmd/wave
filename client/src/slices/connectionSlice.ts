@@ -103,6 +103,24 @@ export const removeConnection = createAsyncThunk(
   }
 );
 
+export const updateConnectionInstructions = createAsyncThunk(
+  "connection/updateInstructions",
+  async (
+    { id, custom_instructions }: { id: string; custom_instructions: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const updatedConnection = await api.updateConnectionInstructions({
+        id,
+        custom_instructions,
+      });
+      return { updatedConnection };
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
+
 const connectionSlice = createSlice({
   name: "connection",
   initialState,
@@ -175,6 +193,14 @@ const connectionSlice = createSlice({
           state.connections[index].name = payload.previousName;
         }
       }
+    });
+
+    builder.addCase(updateConnectionInstructions.fulfilled, (state, action) => {
+      const { updatedConnection } = action.payload;
+      const index = state.connections.findIndex(
+        (c) => c.id === updatedConnection.id
+      );
+      if (index !== -1) state.connections[index] = updatedConnection;
     });
 
     builder.addCase(removeConnection.fulfilled, (state, action) => {

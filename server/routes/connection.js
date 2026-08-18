@@ -15,5 +15,9 @@ connectionRouter.post('/:id/activate', connectionController.activate);
 connectionRouter.post('/:id/disconnect', connectionController.disconnect);
 connectionRouter.delete('/:id', connectionController.remove);
 connectionRouter.patch('/:id/name', connectionController.updateName);
+connectionRouter.patch(
+	'/:id/instructions',
+	connectionController.updateInstructions,
+);
 
 export default connectionRouter;
