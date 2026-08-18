@@ -78,9 +78,20 @@ export const addConnection = createAsyncThunk(
 
 export const updateConnectionName = createAsyncThunk(
   "connection/update",
-  async ({ id, name }: { id: string; name: string }) => {
-    const updatedConnection = await api.updateConnectionName({ id, name });
-    return { updatedConnection };
+  async (
+    { id, name }: { id: string; name: string },
+    { getState, rejectWithValue }
+  ) => {
+    const state = getState() as RootState;
+    const existing = state.connection.connections.find((c) => c.id === id);
+    const previousName = existing?.name;
+
+    try {
+      const updatedConnection = await api.updateConnectionName({ id, name });
+      return { updatedConnection };
+    } catch (err) {
+      return rejectWithValue({ id, previousName, error: err });
+    }
   }
 );
 
@@ -139,12 +150,31 @@ const connectionSlice = createSlice({
       localStorage.setItem(STORAGE_KEY, connection.id);
     });
 
+    builder.addCase(updateConnectionName.pending, (state, action) => {
+      const { id, name } = action.meta.arg;
+      const index = state.connections.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        state.connections[index].name = name;
+      }
+    });
+
     builder.addCase(updateConnectionName.fulfilled, (state, action) => {
       const { updatedConnection } = action.payload;
       const index = state.connections.findIndex(
         (connection) => connection.id === updatedConnection.id
       );
       if (index !== -1) state.connections[index] = updatedConnection;
+    });
+
+    builder.addCase(updateConnectionName.rejected, (state, action) => {
+      const payload = action.payload as
+        { id: string; previousName?: string } | undefined;
+      if (payload?.id && payload.previousName !== undefined) {
+        const index = state.connections.findIndex((c) => c.id === payload.id);
+        if (index !== -1) {
+          state.connections[index].name = payload.previousName;
+        }
+      }
     });
 
     builder.addCase(removeConnection.fulfilled, (state, action) => {

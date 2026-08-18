@@ -12,7 +12,7 @@ import ThreadListItem from "./ThreadListItem";
 import { Skeleton } from "../ui/skeleton";
 
 export default function ThreadList() {
-  const { threads, status, activeThreadId } = useChat();
+  const { threads, isThreadsLoading, status, activeThreadId } = useChat();
 
   const pinnedThreads = threads.filter((thread) => thread.pinned);
   const normalThreads = threads.filter((thread) => !thread.pinned);
@@ -20,7 +20,7 @@ export default function ThreadList() {
   // New thread is being created when sending a message with no active thread
   const isCreatingThread = status === "sending" && !activeThreadId;
 
-  if (status === "loading") {
+  if (isThreadsLoading) {
     return (
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
         <Skeleton className="mt-2 mb-2 h-4 rounded-md" />

@@ -20,6 +20,7 @@ export interface ChatState {
   activeThreadId: string | null;
   messages: Message[];
   status: "idle" | "loading" | "sending" | "error";
+  isThreadsLoading: boolean;
 }
 
 export interface UpdateThreadTitlePayload {
@@ -30,6 +31,7 @@ export interface UpdateThreadTitlePayload {
 export type ChatAction =
   // Thread Actions
   | { type: "SET_THREADS"; payload: Thread[] }
+  | { type: "SET_THREADS_LOADING"; payload: boolean }
   | { type: "SET_ACTIVE_THREAD"; payload: string | null }
   | { type: "ADD_THREAD"; payload: Thread }
   | { type: "DELETE_THREAD"; payload: string }

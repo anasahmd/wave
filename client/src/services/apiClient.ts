@@ -52,16 +52,17 @@ export const api = {
 
   guestLogin: (): Promise<AuthResponse> => apiClient.post("/auth/guest"),
 
-  me: (): Promise<User> => apiClient.get("/auth/account"),
+  // Users / Account
+  me: (): Promise<User> => apiClient.get("/users/me"),
 
   changePassword: (payload: ChangePasswordPayload) =>
-    apiClient.put("/auth/password", payload),
+    apiClient.put("/users/me/password", payload),
 
   updateProfile: (payload: { name: string; email: string }): Promise<User> =>
-    apiClient.patch("/auth/account", payload),
+    apiClient.patch("/users/me", payload),
 
   deleteAccount: (password: string) =>
-    apiClient.delete("/auth/account", { data: { password } }),
+    apiClient.delete("/users/me", { data: { password } }),
 
   // Connections
   connectDb: ({

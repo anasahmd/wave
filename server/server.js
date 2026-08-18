@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import configureDB from './config/db.js';
 import authRouter from './routes/auth.js';
+import userRouter from './routes/user.js';
 import { authenticate } from './middleware/auth.js';
 import connectionRouter from './routes/connection.js';
 import morgan from 'morgan';
@@ -27,6 +28,7 @@ const accessLogStream = createStream('access.log', {
 app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use('/api/auth', authRouter);
+app.use('/api/users', authenticate, userRouter);
 app.use('/api/connections', authenticate, connectionRouter);
 app.use('/api/chats', authenticate, chatRouter);
 

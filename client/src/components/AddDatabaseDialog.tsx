@@ -12,6 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 import { addDatabaseSchema } from "@/validations/database";
 import { addConnection } from "@/slices/connectionSlice";
 import { useAppDispatch } from "@/store";
@@ -34,6 +35,8 @@ export default function AddDatabaseDialog({
       uri: "",
     },
   });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   const onSubmit = async ({ name, uri }: { name: string; uri: string }) => {
     const result = await dispatch(addConnection({ name, uri }));
@@ -69,8 +72,9 @@ export default function AddDatabaseDialog({
                 <Input
                   {...field}
                   id={field.name}
-                  type="name"
+                  type="text"
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   placeholder="Name"
                   autoComplete="name"
                   className="rounded-md"
@@ -94,6 +98,7 @@ export default function AddDatabaseDialog({
                   id={field.name}
                   type="url"
                   aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
                   placeholder="Database URI"
                   autoComplete="url"
                   className="rounded-md"
@@ -106,10 +111,17 @@ export default function AddDatabaseDialog({
           />
 
           <DialogFooter>
-            <DialogClose render={<Button variant="outline">Cancel</Button>} />
+            <DialogClose
+              render={
+                <Button variant="outline" disabled={isSubmitting}>
+                  Cancel
+                </Button>
+              }
+            />
 
-            <Button type="submit" className="">
-              Add Database
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Spinner />}
+              {isSubmitting ? "Connecting..." : "Add Database"}
             </Button>
           </DialogFooter>
         </form>

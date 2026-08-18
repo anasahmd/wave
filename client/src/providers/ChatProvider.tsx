@@ -9,7 +9,8 @@ export const chatInitialState: ChatState = {
   threads: [],
   activeThreadId: "",
   messages: [],
-  status: "loading",
+  status: "idle",
+  isThreadsLoading: true,
 };
 
 export default function ChatProvider({ children }: { children: ReactNode }) {
@@ -20,17 +21,17 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const getThreads = async () => {
       if (activeConnectionId) {
-        dispatch({ type: "SET_STATUS", payload: "loading" });
+        dispatch({ type: "SET_THREADS_LOADING", payload: true });
         try {
           const threads = await api.getThreads(activeConnectionId);
           dispatch({ type: "SET_THREADS", payload: threads });
         } catch (error) {
           console.log(error);
         } finally {
-          dispatch({ type: "SET_STATUS", payload: "idle" });
+          dispatch({ type: "SET_THREADS_LOADING", payload: false });
         }
       } else {
-        dispatch({ type: "SET_STATUS", payload: "idle" });
+        dispatch({ type: "SET_THREADS_LOADING", payload: false });
       }
     };
 
@@ -41,11 +42,14 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const getMessages = async () => {
       if (state.activeThreadId) {
+        dispatch({ type: "SET_STATUS", payload: "loading" });
         try {
           const chats = await api.getMessages(state.activeThreadId);
           dispatch({ type: "SET_MESSAGES", payload: chats });
         } catch (error) {
           console.log(error);
+        } finally {
+          dispatch({ type: "SET_STATUS", payload: "idle" });
         }
       }
     };
@@ -153,6 +157,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         activeThreadId: state.activeThreadId,
         messages: state.messages,
         status: state.status,
+        isThreadsLoading: state.isThreadsLoading,
         setActiveThread,
         deleteThread,
         addThread,

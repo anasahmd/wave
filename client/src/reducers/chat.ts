@@ -6,9 +6,14 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     case "SET_THREADS": {
       return { ...state, threads: action.payload };
     }
+    case "SET_THREADS_LOADING": {
+      return { ...state, isThreadsLoading: action.payload };
+    }
     case "SET_ACTIVE_THREAD": {
-      const messages = action.payload ? state.messages : [];
-      return { ...state, activeThreadId: action.payload, messages };
+      const isSameThread = action.payload === state.activeThreadId;
+      const messages = isSameThread ? state.messages : [];
+      const status = action.payload && !isSameThread ? "loading" : "idle";
+      return { ...state, activeThreadId: action.payload, messages, status };
     }
     case "SET_MESSAGES": {
       return { ...state, messages: action.payload };

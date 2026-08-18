@@ -24,6 +24,14 @@ export default function MessageList() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-full flex-col items-center justify-center gap-3">
+        <Spinner className="size-6 text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (messages.length === 0 && !isPending) {
     return (
       <div className="flex min-h-full flex-col items-center justify-center gap-3">
@@ -64,7 +72,7 @@ export default function MessageList() {
                     "prose-pre:my-2 prose-pre:border prose-pre:border-border prose-pre:bg-muted prose-pre:text-foreground",
                     "prose-code:rounded prose-code:border prose-code:border-border prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
                     "prose-ol:my-2 prose-ul:my-2 prose-li:my-0.5",
-                    "prose-table:my-3 prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted/60 prose-th:px-3 prose-th:py-2 prose-td:border prose-td:border-border prose-td:px-3 prose-td:py-2",
+                    "prose-table:my-3 prose-table:w-full prose-th:text-sm prose-td:text-sm prose-th:border prose-th:border-border prose-th:bg-muted/60 prose-th:px-3 prose-th:py-2 prose-td:border prose-td:border-border prose-td:px-3 prose-td:py-2",
                   ],
                   "overflow-auto"
                 )}

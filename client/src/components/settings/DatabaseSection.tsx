@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Edit, Trash, Trash2Icon } from "lucide-react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -14,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import type { Connection } from "@/types";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
@@ -59,6 +59,8 @@ function DatabaseItem({ connection }: { connection: Connection }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(connection.name);
+  const [open, setOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSubmit = () => {
     setIsEditing(false);
@@ -72,8 +74,13 @@ function DatabaseItem({ connection }: { connection: Connection }) {
     dispatch(updateConnectionName({ id: connection.id, name: trimmed }));
   };
 
-  const handleRemoveConnection = (id: string) => {
-    dispatch(removeConnection(id));
+  const handleRemoveConnection = async (id: string) => {
+    setIsDeleting(true);
+    const result = await dispatch(removeConnection(id));
+    setIsDeleting(false);
+    if (removeConnection.fulfilled.match(result)) {
+      setOpen(false);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -107,12 +114,21 @@ function DatabaseItem({ connection }: { connection: Connection }) {
       </div>
       <div className="flex gap-4">
         {!isEditing && (
-          <Button variant="outline" onClick={() => setIsEditing(true)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setEditedName(connection.name);
+              setIsEditing(true);
+            }}
+          >
             <Edit />
           </Button>
         )}
 
-        <AlertDialog>
+        <AlertDialog
+          open={open}
+          onOpenChange={(val) => !isDeleting && setOpen(val)}
+        >
           <AlertDialogTrigger
             render={
               <Button variant="destructive">
@@ -132,13 +148,17 @@ function DatabaseItem({ connection }: { connection: Connection }) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-              <AlertDialogAction
+              <AlertDialogCancel variant="outline" disabled={isDeleting}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
                 variant="destructive"
+                disabled={isDeleting}
                 onClick={() => handleRemoveConnection(connection.id)}
               >
-                Delete
-              </AlertDialogAction>
+                {isDeleting && <Spinner />}
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

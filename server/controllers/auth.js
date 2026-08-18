@@ -130,7 +130,7 @@ authController.changePassword = async (req, res) => {
 			user.password_hash,
 		);
 		if (!validPassword) {
-			return res.status(401).json({ error: 'Current password is incorrect' });
+			return res.status(400).json({ error: 'Current password is incorrect' });
 		}
 
 		user.password_hash = await bcrypt.hash(newPassword, 12);
@@ -182,7 +182,7 @@ authController.deleteAccount = async (req, res) => {
 		const user = await User.findById(req.user.id);
 		if (!user) return res.status(404).json({ error: 'User not found' });
 		const valid = await bcrypt.compare(password, user.password_hash);
-		if (!valid) return res.status(401).json({ error: 'Incorrect password' });
+		if (!valid) return res.status(400).json({ error: 'Incorrect password' });
 		// Clean up connections, threads, checkpoints
 		const connections = await Connection.find({ user: user._id });
 		for (const conn of connections) {

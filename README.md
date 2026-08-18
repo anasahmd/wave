@@ -132,9 +132,10 @@ wave/
 | POST   | `/api/auth/register`                 | No   | Register a new user         |
 | POST   | `/api/auth/login`                    | No   | Login                       |
 | POST   | `/api/auth/guest`                    | No   | Guest login                 |
-| GET    | `/api/auth/me`                       | Yes  | Get current user            |
-| PUT    | `/api/auth/password`                 | Yes  | Change password             |
-| PATCH  | `/api/auth/profile`                  | Yes  | Update profile              |
+| GET    | `/api/users/me`                      | Yes  | Get current user account    |
+| PUT    | `/api/users/me/password`             | Yes  | Change password             |
+| PATCH  | `/api/users/me`                      | Yes  | Update profile details      |
+| DELETE | `/api/users/me`                      | Yes  | Delete user account         |
 | POST   | `/api/connections/connect`           | Yes  | Add & connect a database    |
 | GET    | `/api/connections`                   | Yes  | List connections            |
 | POST   | `/api/connections/:id/activate`      | Yes  | Activate a connection       |
