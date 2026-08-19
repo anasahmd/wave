@@ -17,7 +17,7 @@ const initialState: ChatState = {
   activeThreadId: "",
   messages: [],
   status: "idle",
-  isThreadsLoading: true,
+  isThreadsLoading: false,
 };
 
 export const fetchThreads = createAsyncThunk(

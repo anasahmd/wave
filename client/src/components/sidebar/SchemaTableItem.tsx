@@ -25,9 +25,9 @@ export default function SchemaTableItem({
         <CollapsibleTrigger
           className="group"
           render={
-            <SidebarMenuButton className="text-sm">
-              <ChevronRight className="size-3! transition-transform group-data-panel-open:rotate-90" />
-              {tableName}
+            <SidebarMenuButton className="text-sm" title={tableName}>
+              <ChevronRight className="size-3! shrink-0 transition-transform group-data-panel-open:rotate-90" />
+              <span className="truncate">{tableName}</span>
             </SidebarMenuButton>
           }
         />
@@ -35,10 +35,14 @@ export default function SchemaTableItem({
           <SidebarMenuSub>
             {columns.map((col) => (
               <SidebarMenuSubItem
-                className="flex justify-between text-xs"
+                className="flex items-center justify-between gap-2 text-xs py-0.5"
                 key={col.name}
+                title={`${col.name}: ${col.type}`}
               >
-                <span>{col.name}</span> <span>{col.type}</span>
+                <span className="truncate min-w-0">{col.name}</span>
+                <span className="truncate text-muted-foreground font-mono text-[11px] shrink-0 max-w-[50%] text-right">
+                  {col.type}
+                </span>
               </SidebarMenuSubItem>
             ))}
           </SidebarMenuSub>

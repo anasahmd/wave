@@ -22,6 +22,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (activeConnectionId) {
       dispatch(fetchThreads(activeConnectionId));
+    } else {
+      dispatch(resetChatAction());
     }
   }, [activeConnectionId, dispatch]);
 
