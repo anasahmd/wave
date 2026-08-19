@@ -63,7 +63,6 @@ const Register = () => {
                   disabled={isSubmitting}
                   placeholder="Full Name"
                   autoComplete="name"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -91,7 +90,6 @@ const Register = () => {
                   disabled={isSubmitting}
                   placeholder="Email"
                   autoComplete="email"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -119,7 +117,6 @@ const Register = () => {
                   disabled={isSubmitting}
                   autoComplete="new-password"
                   placeholder="Password"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -147,7 +144,6 @@ const Register = () => {
                   disabled={isSubmitting}
                   autoComplete="new-password"
                   placeholder="Confirm Password"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -160,7 +156,7 @@ const Register = () => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
+              className="text-md mt-4 w-full font-medium"
             >
               {isSubmitting && <Spinner />}
               {isSubmitting ? "Registering..." : "Register"}

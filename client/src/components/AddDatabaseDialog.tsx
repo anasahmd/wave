@@ -77,7 +77,6 @@ export default function AddDatabaseDialog({
                   disabled={isSubmitting}
                   placeholder="Name"
                   autoComplete="name"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -101,7 +100,6 @@ export default function AddDatabaseDialog({
                   disabled={isSubmitting}
                   placeholder="Database URI"
                   autoComplete="url"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

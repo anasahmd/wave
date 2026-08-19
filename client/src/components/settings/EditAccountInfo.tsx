@@ -38,7 +38,7 @@ export default function EditAccountInfo() {
             <Input
               id="name"
               name="name"
-              className="w-full rounded-md"
+              className="w-full"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -51,14 +51,14 @@ export default function EditAccountInfo() {
               id="email"
               name="email"
               type="email"
-              className="w-full rounded-md"
+              className="w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
         </FieldGroup>
         {hasChanges && (
-          <Button type="submit" className="mt-4 rounded-md" disabled={saving}>
+          <Button type="submit" className="mt-4" disabled={saving}>
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         )}

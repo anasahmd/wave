@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import connectionReducer from "./slices/connectionSlice";
+import chatReducer from "./slices/chatSlice";
 
 const store = configureStore({
   reducer: {
     connection: connectionReducer,
+    chat: chatReducer,
   },
 });
 

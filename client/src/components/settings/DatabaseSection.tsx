@@ -105,7 +105,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
             autoFocus
             onBlur={handleSubmit}
             onKeyDown={handleKeyDown}
-            className="h-8 w-40 rounded-md focus-visible:ring-1"
+            className="h-8 w-40 focus-visible:ring-1"
           />
         ) : (
           <span>{connection.name}</span>

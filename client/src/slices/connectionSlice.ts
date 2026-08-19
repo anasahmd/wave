@@ -23,7 +23,7 @@ const initialState: ConnectionState = {
 
 export const fetchConnections = createAsyncThunk(
   "connection/fetchAll",
-  async () => {
+  async (_, { dispatch }) => {
     const connections = await api.listConnections();
     let activeSchema: Schema | null = null;
     let activeConnectionId: string | null = null;
@@ -33,6 +33,15 @@ export const fetchConnections = createAsyncThunk(
       const savedId = localStorage.getItem(STORAGE_KEY);
       const target =
         connections.find((c) => c.id === savedId) ?? connections[0];
+
+      // Update state with connections list and set switchingId so UI shows "Connecting to <target.name>..."
+      dispatch(
+        connectionSlice.actions.setSwitchingState({
+          connections,
+          switchingId: target.id,
+        })
+      );
+
       const response = await api.activateConnection(target.id);
       activeSchema = response.schema;
       activeConnectionId = target.id;
@@ -126,12 +135,22 @@ const connectionSlice = createSlice({
   initialState,
   reducers: {
     resetConnection: () => initialState,
+    setSwitchingState: (
+      state,
+      action: {
+        payload: { connections: Connection[]; switchingId: string };
+      }
+    ) => {
+      state.connections = action.payload.connections;
+      state.switchingId = action.payload.switchingId;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchConnections.fulfilled, (state, action) => {
       const { connections, activeConnectionId, activeSchema } = action.payload;
       state.connections = connections;
       state.loading = false;
+      state.switchingId = null;
       state.activeConnectionId = activeConnectionId;
       state.activeSchema = activeSchema;
 
@@ -142,6 +161,7 @@ const connectionSlice = createSlice({
 
     builder.addCase(fetchConnections.rejected, (state) => {
       state.loading = false;
+      state.switchingId = null;
     });
 
     builder.addCase(switchConnection.fulfilled, (state, action) => {
@@ -218,6 +238,6 @@ const connectionSlice = createSlice({
   },
 });
 
-export const { resetConnection } = connectionSlice.actions;
+export const { resetConnection, setSwitchingState } = connectionSlice.actions;
 
 export default connectionSlice.reducer;

@@ -1,44 +1,96 @@
 import InputBar from "@/components/chatarea/InputBar";
 import MessageList from "./MessageList";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppSelector } from "@/store";
 import { Waves } from "lucide-react";
 import { Button } from "../ui/button";
 import AddDatabaseDialog from "../AddDatabaseDialog";
 import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
+
+interface ChatAreaStateProps {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  children?: React.ReactNode;
+}
+
+function ChatAreaState({
+  icon,
+  title,
+  description,
+  children,
+}: ChatAreaStateProps) {
+  return (
+    <div className="mx-auto flex min-h-full flex-col items-center justify-center gap-3">
+      <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <div className="text-center">
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        {description && (
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function ChatArea() {
-  const { activeConnectionId } = useAppSelector((state) => state.connection);
+  const { activeConnectionId, switchingId, loading, connections } =
+    useAppSelector((state) => state.connection);
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
 
+  const targetConnection = connections.find(
+    (c) => c.id === (switchingId || activeConnectionId)
+  );
+
+  if (loading && connections.length === 0) {
+    return (
+      <ChatAreaState
+        icon={<Spinner className="size-6 text-primary" />}
+        title="Fetching databases..."
+        description="Loading your database connections."
+      />
+    );
+  }
+
+  if (switchingId || (loading && targetConnection)) {
+    return (
+      <ChatAreaState
+        icon={<Spinner className="size-6 text-primary" />}
+        title={`Connecting to ${targetConnection?.name || "database"}...`}
+        description="Establishing connection and loading database schema."
+      />
+    );
+  }
+
   if (!activeConnectionId) {
     return (
-      <div className="mx-auto flex min-h-full flex-col items-center justify-center gap-3">
-        <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Waves className="size-6" />
-        </div>
-        <div className="text-center">
-          <h2 className="text-xl font-semibold tracking-tight">
-            Connect to a database to get started
-          </h2>
+      <>
+        <ChatAreaState
+          icon={<Waves className="size-6" />}
+          title="Connect to a database to get started"
+        >
           <Button className="mt-4" onClick={() => setIsAddDatabaseOpen(true)}>
             Add database
           </Button>
-        </div>
+        </ChatAreaState>
         <AddDatabaseDialog
           open={isAddDatabaseOpen}
           onOpenChange={setIsAddDatabaseOpen}
         />
-      </div>
+      </>
     );
   }
   return (
-    <div className="mx-auto flex h-screen w-full max-w-3xl flex-col px-12 pt-12">
-      <ScrollArea className="min-h-0 flex-1">
+    <div className="mx-auto flex h-screen w-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <MessageList />
-      </ScrollArea>
-      <div className="sticky bottom-0 bg-background pt-4">
+      </div>
+
+      <div className="sticky bottom-0 mx-auto w-full max-w-3xl bg-background px-6">
         <InputBar />
         <p className="my-3 text-center text-xs">
           Wave is AI and can make mistakes.

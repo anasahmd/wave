@@ -49,7 +49,6 @@ export default function ChangePassword() {
                 aria-invalid={fieldState.invalid}
                 autoComplete="current-password"
                 placeholder="Current Password"
-                className="rounded-md"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -71,7 +70,6 @@ export default function ChangePassword() {
                 aria-invalid={fieldState.invalid}
                 autoComplete="new-password"
                 placeholder="New Password"
-                className="rounded-md"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -93,7 +91,6 @@ export default function ChangePassword() {
                 aria-invalid={fieldState.invalid}
                 autoComplete="new-password"
                 placeholder="Confirm New Password"
-                className="rounded-md"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -102,7 +99,7 @@ export default function ChangePassword() {
 
         <Button
           type="submit"
-          className="mt-2 rounded-md"
+          className="mt-2"
           disabled={form.formState.isSubmitting}
         >
           {form.formState.isSubmitting ? "Changing..." : "Change Password"}

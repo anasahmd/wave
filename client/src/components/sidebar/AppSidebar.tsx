@@ -29,12 +29,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       {loading || switchingId ? (
         <SidebarContent>
-          {/* Schema section skeleton */}
+          {/* Business rules */}
           <SidebarGroup>
             <Skeleton className="mb-2 h-6 rounded-md" />
           </SidebarGroup>
 
-          {/* New chat button skeleton */}
+          {/* New chat */}
+          <SidebarGroup>
+            <Skeleton className="mb-4 h-6 rounded-md" />
+          </SidebarGroup>
+
+          {/* Schema explorer */}
           <SidebarGroup>
             <Skeleton className="mb-4 h-6 rounded-md" />
           </SidebarGroup>
@@ -54,8 +59,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ) : (
         <SidebarContent className="gap-1">
           <BusinessRulesItem />
-          <SchemaItem />
           {activeConnectionId && <NewChatItem />}
+          <SchemaItem />
           <ThreadList />
         </SidebarContent>
       )}

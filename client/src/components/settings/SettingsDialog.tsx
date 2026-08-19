@@ -1,10 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import DatabaseSection from "./DatabaseSection";
 import SettingsNavButton from "./SettingsNavButton";
 import { useState } from "react";

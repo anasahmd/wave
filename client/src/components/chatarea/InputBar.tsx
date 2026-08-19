@@ -3,7 +3,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp } from "lucide-react";
 import { useRef, useState } from "react";
 import { useChat } from "@/providers/ChatProvider";
-import { Spinner } from "@/components/ui/spinner";
 
 export default function InputBar() {
   const [message, setMessage] = useState("");

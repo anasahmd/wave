@@ -76,7 +76,6 @@ const Login = () => {
                   disabled={isLoading}
                   placeholder="Email"
                   autoComplete="email"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -103,7 +102,6 @@ const Login = () => {
                   disabled={isLoading}
                   autoComplete="current-password"
                   placeholder="Password"
-                  className="rounded-md"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -116,7 +114,7 @@ const Login = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="text-md mt-4 w-full cursor-pointer rounded-md font-medium"
+              className="text-md mt-4 w-full font-medium"
             >
               {isSubmitting && <Spinner />}
               {isSubmitting ? "Logging in..." : "Login"}
@@ -127,7 +125,7 @@ const Login = () => {
         <Button
           type="button"
           disabled={isLoading}
-          className="text-md w-full cursor-pointer rounded-md font-medium"
+          className="text-md w-full font-medium"
           onClick={onGuestLogin}
         >
           {isGuestLoading && <Spinner />}

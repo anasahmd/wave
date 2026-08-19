@@ -99,7 +99,6 @@ export default function DeleteAccount() {
                     aria-invalid={fieldState.invalid}
                     autoComplete="current-password"
                     placeholder="Enter your password"
-                    className="rounded-md"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
