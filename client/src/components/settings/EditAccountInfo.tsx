@@ -1,5 +1,5 @@
 import { useAuth } from "@/providers/AuthProvider";
-import { Field, FieldGroup, FieldLabel } from "../ui/field";
+import { Field, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -29,39 +29,41 @@ export default function EditAccountInfo() {
   return (
     <div className="my-8">
       <h4 className="mb-6 font-medium">Edit Account Information</h4>
-      <form onSubmit={handleSubmit}>
-        <FieldGroup className="flex gap-6">
-          <Field className="flex flex-row">
-            <FieldLabel htmlFor="name" className="flex-1/2">
-              Name
-            </FieldLabel>
-            <Input
-              id="name"
-              name="name"
-              className="w-full"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Field>
-          <Field className="flex flex-row">
-            <FieldLabel htmlFor="email" className="flex-1/2">
-              Email
-            </FieldLabel>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              className="w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Field>
-        </FieldGroup>
-        {hasChanges && (
-          <Button type="submit" className="mt-4" disabled={saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        )}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
+        <Field>
+          <FieldLabel htmlFor="name" className="text-xs font-normal">
+            Name
+          </FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="email" className="text-xs font-normal">
+            Email
+          </FieldLabel>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Field>
+
+        <Button
+          type="submit"
+          className="mt-2"
+          disabled={saving || !hasChanges}
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
       </form>
     </div>
   );

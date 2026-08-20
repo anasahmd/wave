@@ -1,11 +1,11 @@
 import InputBar from "@/components/chatarea/InputBar";
 import MessageList from "./MessageList";
-import { useAppSelector } from "@/store";
 import { Waves } from "lucide-react";
 import { Button } from "../ui/button";
 import AddDatabaseDialog from "../AddDatabaseDialog";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { useConnection } from "@/providers/ConnectionProvider";
 
 interface ChatAreaStateProps {
   icon: React.ReactNode;
@@ -38,7 +38,7 @@ function ChatAreaState({
 
 export default function ChatArea() {
   const { activeConnectionId, switchingId, loading, connections } =
-    useAppSelector((state) => state.connection);
+    useConnection();
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
 

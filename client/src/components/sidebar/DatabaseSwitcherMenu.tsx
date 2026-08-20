@@ -16,27 +16,25 @@ import {
 } from "@/components/ui/sidebar";
 import { useState } from "react";
 import AddDatabaseDialog from "../AddDatabaseDialog";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { switchConnection } from "@/slices/connectionSlice";
+import { useConnection } from "@/providers/ConnectionProvider";
 import { Spinner } from "../ui/spinner";
 
 export default function DatabaseSwitcherMenu() {
   const { isMobile } = useSidebar();
-  const dispatch = useAppDispatch();
-
-  const { connections, activeConnectionId, switchingId, loading } =
-    useAppSelector((state) => state.connection);
-
-  const activeConnection = connections.find(
-    (connection) => connection.id === activeConnectionId
-  );
+  const {
+    connections,
+    activeConnection,
+    switchingId,
+    loading,
+    switchConnection,
+  } = useConnection();
 
   const switchingConnection = connections.find(
     (connection) => connection.id === switchingId
   );
 
   const handleSwitchConnection = (id: string) => {
-    dispatch(switchConnection(id));
+    switchConnection(id);
   };
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);

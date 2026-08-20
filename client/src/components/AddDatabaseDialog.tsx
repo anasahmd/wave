@@ -14,8 +14,8 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import { addDatabaseSchema } from "@/validations/database";
-import { addConnection } from "@/slices/connectionSlice";
-import { useAppDispatch } from "@/store";
+import { addConnection as addConnectionAction } from "@/slices/connectionSlice";
+import { useConnection } from "@/providers/ConnectionProvider";
 
 interface AddDatabaseDialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ export default function AddDatabaseDialog({
   open,
   onOpenChange,
 }: AddDatabaseDialogProps) {
-  const dispatch = useAppDispatch();
+  const { addConnection } = useConnection();
 
   const form = useForm({
     resolver: zodResolver(addDatabaseSchema),
@@ -39,8 +39,8 @@ export default function AddDatabaseDialog({
   const isSubmitting = form.formState.isSubmitting;
 
   const onSubmit = async ({ name, uri }: { name: string; uri: string }) => {
-    const result = await dispatch(addConnection({ name, uri }));
-    if (addConnection.fulfilled.match(result)) {
+    const result = await addConnection({ name, uri });
+    if (addConnectionAction.fulfilled.match(result)) {
       onOpenChange(false);
       form.reset({ name: "", uri: "" });
     }

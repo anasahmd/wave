@@ -6,14 +6,11 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { useState } from "react";
-import { useAppSelector } from "@/store";
+import { useConnection } from "@/providers/ConnectionProvider";
 import BusinessRulesDialog from "../BusinessRulesDialog";
 
 export default function BusinessRulesItem() {
-  const { connections, activeConnectionId } = useAppSelector(
-    (state) => state.connection
-  );
-  const activeConnection = connections.find((c) => c.id === activeConnectionId);
+  const { activeConnection } = useConnection();
   const [isOpen, setIsOpen] = useState(false);
 
   if (!activeConnection) return null;

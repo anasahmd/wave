@@ -11,10 +11,10 @@ import {
   SidebarMenu,
 } from "../ui/sidebar";
 import SchemaTableItem from "./SchemaTableItem";
-import { useAppSelector } from "@/store";
+import { useConnection } from "@/providers/ConnectionProvider";
 
 export default function SchemaItem() {
-  const { activeSchema } = useAppSelector((state) => state.connection);
+  const { activeSchema } = useConnection();
 
   if (!activeSchema) return null;
 

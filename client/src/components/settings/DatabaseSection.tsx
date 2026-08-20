@@ -15,16 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { Connection } from "@/types";
-import { useAppDispatch, useAppSelector } from "@/store";
 import {
-  removeConnection,
-  updateConnectionName,
+  removeConnection as removeConnectionAction,
 } from "@/slices/connectionSlice";
+import { useConnection } from "@/providers/ConnectionProvider";
 import AddDatabaseDialog from "../AddDatabaseDialog";
 import BusinessRulesDialog from "../BusinessRulesDialog";
 
 export default function DatabaseSection() {
-  const { connections } = useAppSelector((state) => state.connection);
+  const { connections } = useConnection();
   const [isAddDbOpen, setIsAddDbOpen] = useState(false);
 
   return (
@@ -56,7 +55,7 @@ export default function DatabaseSection() {
 }
 
 function DatabaseItem({ connection }: { connection: Connection }) {
-  const dispatch = useAppDispatch();
+  const { updateConnectionName, removeConnection } = useConnection();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(connection.name);
@@ -73,14 +72,14 @@ function DatabaseItem({ connection }: { connection: Connection }) {
       return;
     }
 
-    dispatch(updateConnectionName({ id: connection.id, name: trimmed }));
+    updateConnectionName({ id: connection.id, name: trimmed });
   };
 
   const handleRemoveConnection = async (id: string) => {
     setIsDeleting(true);
-    const result = await dispatch(removeConnection(id));
+    const result = await removeConnection(id);
     setIsDeleting(false);
-    if (removeConnection.fulfilled.match(result)) {
+    if (removeConnectionAction.fulfilled.match(result)) {
       setOpen(false);
     }
   };

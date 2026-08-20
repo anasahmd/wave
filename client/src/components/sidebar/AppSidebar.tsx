@@ -15,13 +15,11 @@ import SchemaItem from "./SchemaItem";
 import BusinessRulesItem from "./BusinessRulesItem";
 import ThreadList from "./ThreadList";
 import NewChatItem from "./NewChatItem";
-import { useAppSelector } from "@/store";
+import { useConnection } from "@/providers/ConnectionProvider";
 import { Skeleton } from "../ui/skeleton";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { switchingId, loading, activeConnectionId } = useAppSelector(
-    (state) => state.connection
-  );
+  const { switchingId, loading, activeConnectionId } = useConnection();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

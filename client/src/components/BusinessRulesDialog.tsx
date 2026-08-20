@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import type { Connection } from "@/types";
-import { useAppDispatch } from "@/store";
-import { updateConnectionInstructions } from "@/slices/connectionSlice";
+import { useConnection } from "@/providers/ConnectionProvider";
 import { FileText } from "lucide-react";
 
 interface BusinessRulesDialogProps {
@@ -26,7 +25,7 @@ export default function BusinessRulesDialog({
   onOpenChange,
   connection,
 }: BusinessRulesDialogProps) {
-  const dispatch = useAppDispatch();
+  const { updateConnectionInstructions } = useConnection();
   const [instructions, setInstructions] = useState(
     connection?.custom_instructions || ""
   );
@@ -42,12 +41,10 @@ export default function BusinessRulesDialog({
 
   const handleSave = async () => {
     setIsSaving(true);
-    await dispatch(
-      updateConnectionInstructions({
-        id: connection.id,
-        custom_instructions: instructions,
-      })
-    );
+    await updateConnectionInstructions({
+      id: connection.id,
+      custom_instructions: instructions,
+    });
     setIsSaving(false);
     onOpenChange(false);
   };

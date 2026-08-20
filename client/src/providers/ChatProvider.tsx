@@ -18,13 +18,17 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const { activeConnectionId } = useAppSelector((state) => state.connection);
   const { activeThreadId } = useAppSelector((state) => state.chat);
 
-  // Fetch threads when active connection changes
+  // Fetch threads when active connection changes and reset chat on unmount
   useEffect(() => {
     if (activeConnectionId) {
       dispatch(fetchThreads(activeConnectionId));
     } else {
       dispatch(resetChatAction());
     }
+
+    return () => {
+      dispatch(resetChatAction());
+    };
   }, [activeConnectionId, dispatch]);
 
   // Fetch messages when active thread changes
@@ -33,16 +37,6 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       dispatch(fetchMessages(activeThreadId));
     }
   }, [activeThreadId, dispatch]);
-
-  // Listen for logout event to reset chat state
-  useEffect(() => {
-    const handleLogout = () => {
-      dispatch(resetChatAction());
-    };
-
-    window.addEventListener("auth:logout", handleLogout);
-    return () => window.removeEventListener("auth:logout", handleLogout);
-  }, [dispatch]);
 
   return <>{children}</>;
 }
