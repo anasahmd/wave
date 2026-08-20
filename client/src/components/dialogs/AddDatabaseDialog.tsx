@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Field, FieldError, FieldLabel } from "./ui/field";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Spinner } from "./ui/spinner";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { addDatabaseSchema } from "@/validations/database";
 import { addConnection as addConnectionAction } from "@/slices/connectionSlice";
 import { useConnection } from "@/providers/ConnectionProvider";

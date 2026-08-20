@@ -4,7 +4,7 @@ import App from "./App.tsx";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ThemeProvider } from "@/components/theme-provider.tsx";
+import { ThemeProvider } from "@/components/ThemeProvider.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./providers/AuthProvider.tsx";

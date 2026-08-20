@@ -7,7 +7,7 @@ import {
 } from "../ui/sidebar";
 import { useState } from "react";
 import { useConnection } from "@/providers/ConnectionProvider";
-import BusinessRulesDialog from "../BusinessRulesDialog";
+import BusinessRulesDialog from "../dialogs/BusinessRulesDialog";
 
 export default function BusinessRulesItem() {
   const { activeConnection } = useConnection();

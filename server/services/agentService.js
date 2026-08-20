@@ -160,18 +160,57 @@ export async function invokeAgent({ agent, message, threadId }) {
 
 		return { answer, executedQueries };
 	} catch (err) {
-		console.dir(err);
-
 		console.error('Agent invocation failed:', {
 			name: err.name,
 			message: err.message,
 			status: err.status,
+			code: err.code,
 		});
 
 		if (err instanceof GraphRecursionError) {
 			return {
 				answer:
 					"I couldn't complete the query because execution exceeded the maximum retry attempts. Please rephrase your request.",
+				executedQueries: [],
+			};
+		}
+
+		if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+			return {
+				answer:
+					'The request took too long and was stopped. Try a simpler question or check if your LLM server is responsive.',
+				executedQueries: [],
+			};
+		}
+
+		// Network errors are often wrapped a few levels deep (e.g. fetch failed -> ECONNREFUSED),
+		// so walk err.cause instead of only checking err.code directly.
+		let cause = err;
+		let networkCode = null;
+		while (cause) {
+			if (
+				['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET'].includes(
+					cause.code,
+				)
+			) {
+				networkCode = cause.code;
+				break;
+			}
+			cause = cause.cause;
+		}
+
+		if (networkCode) {
+			return {
+				answer:
+					"Could not reach your AI model. If you're using a local model, make sure your server is running and reachable at the configured address.",
+				executedQueries: [],
+			};
+		}
+
+		if (err.status === 401 || err.status === 403) {
+			return {
+				answer:
+					'Authentication failed with the LLM provider. Please check your API key configuration.',
 				executedQueries: [],
 			};
 		}
@@ -187,38 +226,6 @@ export async function invokeAgent({ agent, message, threadId }) {
 			return {
 				answer:
 					'The model service is temporarily unavailable. Please try again.',
-				executedQueries: [],
-			};
-		}
-
-		if (err.code === 'ECONNREFUSED') {
-			return {
-				answer:
-					'Could not reach the LLM server. Please make sure it is running.',
-				executedQueries: [],
-			};
-		}
-
-		if (err.code === 'ENOTFOUND') {
-			return {
-				answer:
-					'LLM server address not found. Please check the server configuration.',
-				executedQueries: [],
-			};
-		}
-
-		if (err.message?.includes('timeout')) {
-			return {
-				answer:
-					'The request timed out. Try a simpler question or check if the LLM server is responsive.',
-				executedQueries: [],
-			};
-		}
-
-		if (err.status === 401) {
-			return {
-				answer:
-					'Authentication failed with the LLM provider. Please check the API key configuration.',
 				executedQueries: [],
 			};
 		}

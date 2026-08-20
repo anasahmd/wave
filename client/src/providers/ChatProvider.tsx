@@ -61,7 +61,7 @@ export function useChat() {
   };
 
   const deleteThread = (threadId: string) => {
-    dispatch(deleteThreadAction(threadId));
+    return dispatch(deleteThreadAction(threadId));
   };
 
   const addThread = (thread: Thread) => {

@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
-import ChatArea from "@/components/chatarea/ChatArea";
+import ChatArea from "@/components/chat/ChatArea";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import ChatProvider from "@/providers/ChatProvider";
 import ConnectionProvider from "@/providers/ConnectionProvider";

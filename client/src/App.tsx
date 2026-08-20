@@ -2,7 +2,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from "./components/auth/PrivateRoute";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 

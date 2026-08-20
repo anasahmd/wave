@@ -1,4 +1,11 @@
-import { MoreHorizontal, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Pin,
+  PinOff,
+  Trash2,
+  Trash2Icon,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +18,24 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "../ui/sidebar";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
 import type { Thread } from "@/types";
 import { useChat } from "@/providers/ChatProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Input } from "../ui/input";
+import { deleteThread as deleteThreadAction } from "@/slices/chatSlice";
 
 export default function ThreadListItem({ thread }: { thread: Thread }) {
   const {
@@ -29,9 +49,19 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(thread.title);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = () => {
-    deleteThread(thread.id);
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteThread(thread.id);
+      if (deleteThreadAction.fulfilled.match(result)) {
+        setIsDeleteDialogOpen(false);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -102,12 +132,42 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
                 <span>Rename</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete}>
+              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
                 <Trash2 className="text-muted-foreground" />
                 <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={(val) => !isDeleting && setIsDeleteDialogOpen(val)}
+          >
+            <AlertDialogContent size="sm">
+              <AlertDialogHeader>
+                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                  <Trash2Icon />
+                </AlertDialogMedia>
+                <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this chat?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel variant="outline" disabled={isDeleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  disabled={isDeleting}
+                  onClick={handleConfirmDelete}
+                >
+                  {isDeleting && <Spinner />}
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </SidebarMenuItem>
       )}
     </>

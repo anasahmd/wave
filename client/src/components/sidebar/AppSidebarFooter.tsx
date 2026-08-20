@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import SettingsDialog from "@/components/settings/SettingsDialog";
 import { useAuth } from "@/providers/AuthProvider";
-import { useTheme } from "../theme-provider";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function AppSidebar() {
   const { handleLogout, user } = useAuth();

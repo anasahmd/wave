@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import AuthHeader from "../AuthHeader";
+import AuthHeader from "../auth/AuthHeader";
 import { Spinner } from "../ui/spinner";
 import { useAuth } from "@/providers/AuthProvider";
 

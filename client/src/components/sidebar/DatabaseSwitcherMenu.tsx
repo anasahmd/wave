@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
-import AddDatabaseDialog from "../AddDatabaseDialog";
+import AddDatabaseDialog from "../dialogs/AddDatabaseDialog";
 import { useConnection } from "@/providers/ConnectionProvider";
 import { Spinner } from "../ui/spinner";
 

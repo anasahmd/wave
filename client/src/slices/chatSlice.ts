@@ -55,7 +55,9 @@ export const sendMessage = createAsyncThunk(
       });
       return { response, isNewThread: !currentThreadId };
     } catch (err) {
-      return rejectWithValue(err);
+      return rejectWithValue(
+        (err as Error).message || "LLM connection is not enabled"
+      );
     }
   }
 );
@@ -188,7 +190,7 @@ const chatSlice = createSlice({
         state.activeThreadId = response.thread.id;
       }
     });
-    builder.addCase(sendMessage.rejected, (state) => {
+    builder.addCase(sendMessage.rejected, (state, action) => {
       state.status = "error";
       const index = state.messages.findIndex((m) =>
         m.id.startsWith("pending-")

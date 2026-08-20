@@ -19,8 +19,8 @@ import {
   removeConnection as removeConnectionAction,
 } from "@/slices/connectionSlice";
 import { useConnection } from "@/providers/ConnectionProvider";
-import AddDatabaseDialog from "../AddDatabaseDialog";
-import BusinessRulesDialog from "../BusinessRulesDialog";
+import AddDatabaseDialog from "../dialogs/AddDatabaseDialog";
+import BusinessRulesDialog from "../dialogs/BusinessRulesDialog";
 
 export default function DatabaseSection() {
   const { connections } = useConnection();

@@ -1,8 +1,8 @@
-import InputBar from "@/components/chatarea/InputBar";
+import InputBar from "@/components/chat/InputBar";
 import MessageList from "./MessageList";
 import { Waves } from "lucide-react";
 import { Button } from "../ui/button";
-import AddDatabaseDialog from "../AddDatabaseDialog";
+import AddDatabaseDialog from "../dialogs/AddDatabaseDialog";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useConnection } from "@/providers/ConnectionProvider";

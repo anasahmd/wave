@@ -7,7 +7,7 @@ export const createLLM = () => {
 
 	if (!baseURL || !apiKey || !model) {
 		throw new Error(
-			'LLM not configured. Set LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL in .env',
+			'LLM connection is not enabled. Please check your LLM configuration in .env.',
 		);
 	}
 
