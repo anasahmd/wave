@@ -1,4 +1,4 @@
-import { ChatOpenAI } from '@langchain/openai';
+import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
 
 export const createLLM = () => {
 	const baseURL = process.env.LLM_BASE_URL;
@@ -16,6 +16,26 @@ export const createLLM = () => {
 		temperature: 0,
 		apiKey,
 		maxRetries: 1,
+		configuration: {
+			baseURL,
+		},
+	});
+};
+
+export const createEmbeddingModel = () => {
+	const baseURL = process.env.EMBEDDING_BASE_URL || process.env.LLM_BASE_URL;
+	const apiKey = process.env.EMBEDDING_API_KEY || process.env.LLM_API_KEY;
+	const model = process.env.EMBEDDING_MODEL;
+
+	if (!apiKey) {
+		return null;
+	}
+
+	return new OpenAIEmbeddings({
+		model,
+		apiKey,
+		maxRetries: 1,
+		encodingFormat: 'float',
 		configuration: {
 			baseURL,
 		},

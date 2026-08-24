@@ -51,8 +51,8 @@ export default function BusinessRulesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex h-[700px] max-w-2xl flex-col rounded-lg sm:max-w-3xl">
+        <DialogHeader className="shrink-0">
           <div className="flex gap-2">
             <div className="mt-1 flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <FileText className="size-4" />
@@ -70,17 +70,16 @@ export default function BusinessRulesDialog({
           </div>
         </DialogHeader>
 
-        <div className="py-2">
+        <div className="flex-1 min-h-0 py-2">
           <Textarea
-            rows={10}
             placeholder={`Examples:\n- Active users means status = 'active' and last_login within 30 days.\n- High value orders are orders with total_amount > 500.\n- Revenue calculation: sum of invoice totals where paid = true.`}
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            className="min-h-64 resize-y font-mono text-sm leading-relaxed"
+            className="h-full flex-1 resize-none font-mono text-sm leading-relaxed"
           />
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="shrink-0 gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

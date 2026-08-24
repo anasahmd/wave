@@ -10,6 +10,7 @@ import morgan from 'morgan';
 import { createStream } from 'rotating-file-stream';
 import path from 'path';
 import chatRouter from './routes/chat.js';
+import patternRouter from './routes/pattern.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', authenticate, userRouter);
 app.use('/api/connections', authenticate, connectionRouter);
 app.use('/api/chats', authenticate, chatRouter);
+app.use('/api/patterns', authenticate, patternRouter);
 
 app.use((err, req, res, next) => {
 	console.error(err);

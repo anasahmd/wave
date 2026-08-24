@@ -1,3 +1,5 @@
+import type { PatternUsed } from "./pattern";
+
 export interface Thread {
   id: string;
   title: string;
@@ -11,6 +13,7 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   query_used: string | null;
+  patterns_used?: PatternUsed[];
   content: string;
   created_at: string;
 }

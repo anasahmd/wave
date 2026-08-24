@@ -179,7 +179,7 @@ const chatSlice = createSlice({
         const existingId = state.messages[pendingIndex].id;
         state.messages[pendingIndex] = {
           ...response.message,
-          id: existingId,
+          id: response.message.id || existingId,
         };
       } else {
         state.messages.push(response.message);

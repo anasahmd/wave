@@ -15,6 +15,12 @@ const messageSchema = new mongoose.Schema(
 			type: String,
 			default: null,
 		},
+		patterns_used: [
+			{
+				id: String,
+				question: String,
+			},
+		],
 	},
 	{ timestamps: true },
 );

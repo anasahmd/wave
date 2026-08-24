@@ -21,7 +21,7 @@ export class PostgresAdapter extends BaseAdapter {
 
 ### Query Guidelines
 - Prefer explicit column names over SELECT *. Only select columns relevant to the question.
-- Default to LIMIT 20 unless the user asks for more.
+- The system enforces a maximum limit of 50 rows per query. Ensure your queries use filters, aggregations, or an explicit LIMIT (max 50) so they do not exceed 50 rows.
 - Use JOINs with the correct keys based on PK / FK relationships.
 - Handle NULLs explicitly (use IS NULL / IS NOT NULL, not = NULL).
 - Always use aggregate functions for counts, totals, or averages.

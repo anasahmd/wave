@@ -34,6 +34,7 @@ export function createDbAgent({
 	adapter,
 	schema,
 	customInstructions = '',
+	learnedPatterns = [],
 }) {
 	const {
 		name: toolName,
@@ -54,10 +55,23 @@ export function createDbAgent({
 
 				if (rows.length > 50) {
 					throw new Error(
-						`Query returned more than 50 rows. Please refine your query to return fewer results.`,
+						`Query returned more than 50 rows. Please refine your query to return 50 or fewer rows (e.g. using LIMIT 50 or an aggregation).`,
 					);
 				}
-				return JSON.stringify(rows, null, 2);
+
+				if (rows.length === 50) {
+					return JSON.stringify(
+						{
+							truncated: true,
+							note: 'Result capped at 50 rows — more matching data may exist.',
+							rows,
+						},
+						null,
+						2,
+					);
+				}
+
+				return JSON.stringify({ truncated: false, rows }, null, 2);
 			} catch (err) {
 				throw new Error(`Query Error: ${err.message}`);
 			}
@@ -73,6 +87,24 @@ export function createDbAgent({
 
 	const businessRulesSection = customInstructions
 		? `\n    ## Business Rules & Terminology\n    ${customInstructions}\n`
+		: '';
+
+	function sanitizeForPrompt(text) {
+		if (!text) return '';
+		return text
+			.replace(/```/g, "'''")
+			.replace(/System Prompt/gi, 'Prompt')
+			.trim();
+	}
+
+	const learnedPatternsSection = learnedPatterns.length
+		? `\n    ## Verified & Past Learned Patterns\n    Use these past queries as reference examples for joins, filter rules, and dialect syntax:\n` +
+			learnedPatterns
+				.map(
+					(p) => `    - Question: "${sanitizeForPrompt(p.question)}"\n      Query: \`${sanitizeForPrompt(p.query)}\``,
+				)
+				.join('\n\n') +
+			'\n'
 		: '';
 
 	const systemPrompt = `You are Wave, an expert database analyst created by Anas Ahmad (anasahmad.dev). You help authorized administrators explore their internal data using natural language.
@@ -91,12 +123,18 @@ export function createDbAgent({
 
     ${adapter.instructions}
     ${businessRulesSection}
+    ${learnedPatternsSection}
+
+    ## Mandatory Query Constraints
+    - **Max 50 Rows Limit**: The execution engine enforces a maximum ceiling of 50 rows per query execution.
+    - Include \`LIMIT 50\` (or \`$limit: 50\` in MongoDB) on non-aggregate queries to prevent exceeding 50 rows.
+    - **Select exactly what you display**: Every column value you show in your summary or table MUST come from a column explicitly present in the \`${toolName}\` result for that call. Never infer, guess, or fill in a display field (e.g. an album title, a category name, a customer name) from an ID or foreign key that was returned instead. If the user's question implies a human-readable field you didn't select — for example they ask about "albums" but your query only returned \`AlbumId\` — you MUST re-run the query with that field explicitly joined and selected before answering. Do not answer with the ID or a plausible-sounding guess in its place.
 
     ## Workflow
     1. **Understand**: Read the user's question carefully. Identify relevant tables/collections and columns/fields from the schema.
     2. **Clarify**: If the question is ambiguous or maps to multiple tables/collections, ask ONE focused follow-up question BEFORE writing any query. Never guess.
-    3. **Query**: Call the \`${toolName}\` tool with a single, efficient query.
-    4. **Summarise**: After receiving results, provide a clear natural-language answer with key numbers. Cite the specific data.
+    3. **Query**: Call the \`${toolName}\` tool with a single, efficient query. Select every field you intend to reference in your answer — do not join a table only to filter on it while omitting the columns you'll need to describe the results.
+    4. **Summarise**: After receiving results, provide a clear natural-language answer with key numbers. Cite the specific data returned — never data you did not receive.
 
     ## Response Format
     - Use a markdown table when the result has 3+ columns or 3+ rows. ALWAYS put the header separator row on its own line, exactly like this:
@@ -109,6 +147,7 @@ export function createDbAgent({
     - Use bullet points for lists of 2-5 items.
     - Keep summaries concise — lead with the answer, then add context.
     - Never expose raw JSON or query errors to the user. Translate errors into plain language.
+    - If the \`${toolName}\` result has \`"truncated": true\`, you MUST end your summary with a note that results were capped at 50 rows and more matching data may exist. Do not omit this note and do not paraphrase it away.
 
     ## Error Handling
     - If \`${toolName}\` returns an error, read the message, modify the query, and retry (max 3 attempts).
@@ -153,10 +192,14 @@ export async function invokeAgent({ agent, message, threadId }) {
 		);
 		const currentTurnMessages = allMessages.slice(userMsgIndex);
 
-		const executedQueries = currentTurnMessages
+		const allQueries = currentTurnMessages
 			.flatMap((msg) => msg.tool_calls ?? [])
-			.filter((call) => call.name === 'execute_query')
+			.filter((call) => call.name === 'execute_query' && call.args?.query)
 			.map((call) => call.args.query);
+
+		const executedQueries = allQueries.length
+			? [allQueries[allQueries.length - 1]]
+			: [];
 
 		return { answer, executedQueries };
 	} catch (err) {

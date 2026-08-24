@@ -28,11 +28,11 @@ export class MongoAdapter extends BaseAdapter {
 
 ### Query Guidelines
 - Prefer projections to limit returned fields. Only include fields relevant to the question.
+- The system enforces a maximum limit of 50 documents per query. Ensure your queries use filters, aggregations, or explicit limits ($limit <= 50) so they do not exceed 50 documents.
 - Use $match early in aggregation pipelines to reduce the working set.
 - Use $group with $sum, $avg, $min, $max for aggregations.
-- Use $sort and $limit for top-N queries.
+- Use $sort for top-N queries.
 - Use $lookup for joining data across collections.
-- Default to a $limit of 20 unless the user asks for more.
 
 ### Operational Boundaries (STRICT — always apply)
 - You are a READ-ONLY assistant. Only use find, aggregate, and countDocuments operations.

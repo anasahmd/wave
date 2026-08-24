@@ -4,7 +4,9 @@ import {
 } from '../services/chatService.js';
 import { createLLM } from '../services/llmService.js';
 import { createDbAgent, invokeAgent } from '../services/agentService.js';
+import { getRelevantPatterns } from '../services/patternService.js';
 import Thread from '../models/Thread.js';
+import LearnedPattern from '../models/LearnedPattern.js';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 
@@ -20,6 +22,13 @@ chatController.chat = async (req, res) => {
 			userId: req.user.id,
 		});
 
+		// Retrieve top relevant learned patterns for prompt context
+		const learnedPatterns = await getRelevantPatterns({
+			connectionId,
+			userQuestion: message,
+			topK: 3,
+		});
+
 		// Invoke agent
 		const llm = createLLM();
 
@@ -28,6 +37,7 @@ chatController.chat = async (req, res) => {
 			adapter,
 			schema,
 			customInstructions,
+			learnedPatterns,
 		});
 
 		// Create or retrieve thread
@@ -50,19 +60,35 @@ chatController.chat = async (req, res) => {
 
 		// Save assistant response
 		const queryUsed =
-			executedQueries.length > 0 ? executedQueries.join(';\n') : null;
+			executedQueries.length > 0
+				? executedQueries[executedQueries.length - 1]
+				: null;
 
 		thread.messages.push({
 			role: 'assistant',
 			content: answer || 'Sorry, I was unable to generate a response.',
 			query_used: queryUsed,
+			patterns_used: learnedPatterns.map((p) => ({
+				id: p.id,
+				question: p.question,
+			})),
 		});
 		await thread.save();
+
+		if (learnedPatterns && learnedPatterns.length > 0) {
+			const patternIds = learnedPatterns.map((p) => p.id).filter(Boolean);
+			if (patternIds.length > 0) {
+				await LearnedPattern.updateMany(
+					{ _id: { $in: patternIds } },
+					{ $inc: { usage_count: 1 } },
+				);
+			}
+		}
 
 		const assistantMessage = thread.messages[thread.messages.length - 1];
 
 		res.json({
-			message: assistantMessage,
+			message: assistantMessage.toJSON ? assistantMessage.toJSON() : assistantMessage,
 			thread: {
 				id: thread._id,
 				title: thread.title,
