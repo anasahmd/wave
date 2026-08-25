@@ -1,4 +1,4 @@
-export interface LearnedPattern {
+export interface SavedQuery {
   id: string;
   connection?: string;
   question: string;
@@ -8,7 +8,7 @@ export interface LearnedPattern {
   updated_at?: string;
 }
 
-export interface PatternUsed {
+export interface SavedQueryUsed {
   id: string;
   question: string;
 }

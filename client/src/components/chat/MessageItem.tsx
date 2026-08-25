@@ -23,8 +23,19 @@ export default function MessageItem({ message }: { message: MessageType }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const { activeConnectionId } = useAppSelector((state) => state.connection);
+  const { activeConnectionId, activeSchema } = useAppSelector((state) => state.connection);
   const chatMessages = useAppSelector((state) => state.chat.messages);
+
+  const primaryKeys = (() => {
+    if (!activeSchema) return new Set<string>();
+    const keys = new Set<string>();
+    for (const columns of Object.values(activeSchema)) {
+      for (const col of columns) {
+        if (col.primaryKey) keys.add(col.name.toLowerCase());
+      }
+    }
+    return keys;
+  })();
 
   const handleVerify = async () => {
     if (!message.query_used) return;
@@ -43,15 +54,15 @@ export default function MessageItem({ message }: { message: MessageType }) {
 
     try {
       setIsVerifying(true);
-      await api.addPattern({
+      await api.addSavedQuery({
         connectionId: activeConnectionId,
         question: userQuestion,
         query: message.query_used,
       });
       setIsVerified(true);
-      toast.success("Query saved as a ground-truth pattern!");
+      toast.success("Query saved as a ground-truth query!");
     } catch (err: any) {
-      toast.error(err.message || "Failed to mark pattern.");
+      toast.error(err.message || "Failed to mark query.");
     } finally {
       setIsVerifying(false);
     }
@@ -102,18 +113,20 @@ export default function MessageItem({ message }: { message: MessageType }) {
           >
             <MarkDown
               remarkPlugins={[remarkGfm]}
-              components={{ table: DataTableRenderer }}
+              components={{
+                table: (props) => <DataTableRenderer {...props} primaryKeys={primaryKeys} />,
+              }}
             >
               {message.content}
             </MarkDown>
           </BubbleContent>
 
-          {message.patterns_used && message.patterns_used.length > 0 && (
+          {message.saved_queries_used && message.saved_queries_used.length > 0 && (
             <div className="mt-2.5 flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary w-fit">
               <BrainCircuit className="size-3.5 shrink-0 text-primary" />
               <span>
-                Guided by pattern{message.patterns_used.length > 1 ? "s" : ""}:{" "}
-                {message.patterns_used.map((p) => `"${p.question}"`).join(", ")}
+                Guided by query{message.saved_queries_used.length > 1 ? "s" : ""}:{" "}
+                {message.saved_queries_used.map((p) => `"${p.question}"`).join(", ")}
               </span>
             </div>
           )}
@@ -142,19 +155,19 @@ export default function MessageItem({ message }: { message: MessageType }) {
                           ? "border-primary/30 bg-primary/10 text-primary"
                           : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
-                      title="Save this query as a ground-truth pattern for future AI questions"
+                      title="Save this query as a ground-truth example for future AI questions"
                     >
                       {isVerifying ? (
                         <Spinner className="size-3" />
                       ) : isVerified ? (
                         <>
                           <BookmarkCheck className="size-3 text-primary" />
-                          Marked Pattern
+                          Saved Query
                         </>
                       ) : (
                         <>
                           <Bookmark className="size-3" />
-                          Mark as Pattern
+                          Save Query
                         </>
                       )}
                     </button>

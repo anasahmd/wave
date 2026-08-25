@@ -7,9 +7,9 @@ import {
 } from "../ui/sidebar";
 import { useState } from "react";
 import { useConnection } from "@/providers/ConnectionProvider";
-import LearnedPatternsDialog from "../dialogs/LearnedPatternsDialog";
+import SavedQueriesDialog from "../dialogs/SavedQueriesDialog";
 
-export default function LearnedPatternsItem() {
+export default function SavedQueriesItem() {
   const { activeConnection } = useConnection();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -23,12 +23,12 @@ export default function LearnedPatternsItem() {
             <SidebarMenuButton
               onClick={() => setIsOpen(true)}
               className="flex items-center justify-between text-sidebar-foreground hover:bg-accent"
-              title="Manage Learned Query Patterns"
+              title="Manage Saved Queries"
             >
               <div className="flex items-center gap-2">
                 <BrainCircuit className="size-4" />
                 <span className="truncate text-sm font-medium">
-                  Learned Patterns
+                  Saved Queries
                 </span>
               </div>
             </SidebarMenuButton>
@@ -36,7 +36,7 @@ export default function LearnedPatternsItem() {
         </SidebarMenu>
       </SidebarGroup>
 
-      <LearnedPatternsDialog
+      <SavedQueriesDialog
         open={isOpen}
         onOpenChange={setIsOpen}
         connection={activeConnection}

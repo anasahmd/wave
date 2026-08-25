@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const learnedPatternSchema = new mongoose.Schema(
+const savedQuerySchema = new mongoose.Schema(
 	{
 		connection: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +34,7 @@ const learnedPatternSchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
-learnedPatternSchema.set('toJSON', {
+savedQuerySchema.set('toJSON', {
 	transform: (document, returnedObject) => {
 		returnedObject.id = returnedObject._id.toString();
 		returnedObject.created_at = returnedObject.createdAt;
@@ -47,4 +47,4 @@ learnedPatternSchema.set('toJSON', {
 	},
 });
 
-export default mongoose.model('LearnedPattern', learnedPatternSchema);
+export default mongoose.model('SavedQuery', savedQuerySchema);

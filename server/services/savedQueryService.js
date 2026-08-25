@@ -1,32 +1,20 @@
-import LearnedPattern from '../models/LearnedPattern.js';
-import { createEmbeddingModel } from './llmService.js';
+import SavedQuery from '../models/SavedQuery.js';
+import { embedText } from './llmService.js';
 import mongoose from 'mongoose';
 
 const MIN_RELEVANCE_SCORE = 0.6;
 
-export async function getRelevantPatterns({
+export async function getRelevantSavedQueries({
 	connectionId,
 	userQuestion,
 	topK = 3,
 }) {
 	try {
-		const embeddings = createEmbeddingModel();
-		if (!embeddings) return [];
-
-		let queryEmbedding;
-		try {
-			queryEmbedding = await embeddings.embedQuery(userQuestion);
-		} catch (embedErr) {
-			console.error(
-				`[Embedding Error] Failed to generate query embedding using model "${process.env.EMBEDDING_MODEL || 'default'}":`,
-				embedErr.message,
-			);
-			return [];
-		}
+		const queryEmbedding = await embedText(userQuestion);
 
 		const connObjectId = new mongoose.Types.ObjectId(connectionId);
 
-		const results = await LearnedPattern.aggregate([
+		const results = await SavedQuery.aggregate([
 			{
 				$vectorSearch: {
 					index: 'pattern_vector_index',
@@ -58,7 +46,7 @@ export async function getRelevantPatterns({
 				query: p.query,
 			}));
 	} catch (err) {
-		console.error('Pattern retrieval failed (failing open):', err.message);
+		console.error('Saved query retrieval failed (failing open):', err.message);
 		return [];
 	}
 }

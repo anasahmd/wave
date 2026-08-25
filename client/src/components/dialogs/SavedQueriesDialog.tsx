@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { Connection, LearnedPattern } from "@/types";
+import type { Connection, SavedQuery } from "@/types";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
 import { BrainCircuit, Plus, Trash2, Pencil } from "lucide-react";
-import PatternFormDialog from "./AddPatternDialog";
+import SavedQueryFormDialog from "./SavedQueryFormDialog";
 import {
   Card,
   CardHeader,
@@ -21,34 +21,34 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
-interface LearnedPatternsDialogProps {
+interface SavedQueriesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   connection: Connection | undefined;
   onPatternsChange?: () => void;
 }
 
-export default function LearnedPatternsDialog({
+export default function SavedQueriesDialog({
   open,
   onOpenChange,
   connection,
   onPatternsChange,
-}: LearnedPatternsDialogProps) {
-  const [patterns, setPatterns] = useState<LearnedPattern[]>([]);
+}: SavedQueriesDialogProps) {
+  const [patterns, setPatterns] = useState<SavedQuery[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingPattern, setEditingPattern] = useState<
-    LearnedPattern | undefined
+    SavedQuery | undefined
   >(undefined);
 
   const loadPatterns = useCallback(async () => {
     if (!connection?.id) return;
     try {
       setIsLoading(true);
-      const data = await api.getPatterns(connection.id);
+      const data = await api.getSavedQueries(connection.id);
       setPatterns(data || []);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load patterns");
+      toast.error(err.message || "Failed to load saved queries");
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +64,8 @@ export default function LearnedPatternsDialog({
 
   const handleDeletePattern = async (id: string) => {
     try {
-      await api.deletePattern(id);
-      toast.success("Pattern removed.");
+      await api.deleteSavedQuery(id);
+      toast.success("Query removed.");
       setPatterns((prev) => prev.filter((p) => p.id !== id));
       onPatternsChange?.();
     } catch (err: any) {
@@ -78,7 +78,7 @@ export default function LearnedPatternsDialog({
     setFormOpen(true);
   };
 
-  const handleOpenEdit = (pattern: LearnedPattern) => {
+  const handleOpenEdit = (pattern: SavedQuery) => {
     setEditingPattern(pattern);
     setFormOpen(true);
   };
@@ -99,7 +99,7 @@ export default function LearnedPatternsDialog({
               </div>
               <div>
                 <DialogTitle className="text-lg">
-                  Learned Query Patterns
+                  Saved Queries
                 </DialogTitle>
                 <DialogDescription className="text-xs">
                   Ground-truth SQL/MQL reference patterns for{" "}
@@ -117,10 +117,9 @@ export default function LearnedPatternsDialog({
             ) : patterns.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-center">
                 <BrainCircuit className="size-8 text-muted-foreground/60" />
-                <p className="text-sm font-medium">No learned patterns yet</p>
+                <p className="text-sm font-medium">No saved queries yet</p>
                 <p className="max-w-sm text-xs text-muted-foreground">
-                  Manually add query patterns here or click &quot;Mark as
-                  Pattern&quot; under any assistant response in chat.
+                  Manually add queries here or click &quot;Save Query&quot; under any assistant response in chat.
                 </p>
                 <Button
                   size="sm"
@@ -129,7 +128,7 @@ export default function LearnedPatternsDialog({
                   className="mt-2 gap-1.5 text-xs"
                 >
                   <Plus className="size-3.5" />
-                  Add Your First Pattern
+                  Add Your First Query
                 </Button>
               </div>
             ) : (
@@ -147,14 +146,14 @@ export default function LearnedPatternsDialog({
                         <Button
                           variant="ghost"
                           onClick={() => handleOpenEdit(item)}
-                          title="Edit pattern"
+                          title="Edit query"
                         >
                           <Pencil className="size-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           onClick={() => handleDeletePattern(item.id)}
-                          title="Delete pattern"
+                          title="Delete query"
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -181,14 +180,14 @@ export default function LearnedPatternsDialog({
                 className="gap-1.5 text-sm"
               >
                 <Plus className="size-3.5" />
-                Add Pattern
+                Add Query
               </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <PatternFormDialog
+      <SavedQueryFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         connectionId={connection.id}

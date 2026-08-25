@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -53,7 +52,7 @@ export default function InlineChart({
   rows,
   chartType,
 }: InlineChartProps) {
-  const { data, labelKey, valueKeys } = useMemo(() => {
+  const { data, labelKey, valueKeys } = (() => {
     const isNumeric = detectNumericColumns(headers, rows);
 
     // First non-numeric column is the label axis
@@ -86,7 +85,7 @@ export default function InlineChart({
       labelKey: headers[labelIdx],
       valueKeys: finalValIdxs.map((i) => headers[i]),
     };
-  }, [headers, rows]);
+  })();
 
   if (!data.length || !valueKeys.length) {
     return (

@@ -1,6 +1,6 @@
-import { PostgresAdapter } from './adapters/PostgresAdapter.js';
-import { MySQLAdapter } from './adapters/MySQLAdapter.js';
-import { MongoAdapter } from './adapters/MongoAdapter.js';
+import { PostgresAdapter } from '../adapters/PostgresAdapter.js';
+import { MySQLAdapter } from '../adapters/MySQLAdapter.js';
+import { MongoAdapter } from '../adapters/MongoAdapter.js';
 
 const ADAPTERS = {
 	postgres: PostgresAdapter,

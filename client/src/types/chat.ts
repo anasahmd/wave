@@ -1,4 +1,4 @@
-import type { PatternUsed } from "./pattern";
+import type { SavedQueryUsed } from "./savedQuery";
 
 export interface Thread {
   id: string;
@@ -13,7 +13,7 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   query_used: string | null;
-  patterns_used?: PatternUsed[];
+  saved_queries_used?: SavedQueryUsed[];
   content: string;
   created_at: string;
 }

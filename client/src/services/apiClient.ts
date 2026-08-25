@@ -3,7 +3,7 @@ import type {
   ChangePasswordPayload,
   Connection,
   ConnectionResponse,
-  LearnedPattern,
+  SavedQuery,
   LoginPayload,
   Message,
   RegisterPayload,
@@ -139,8 +139,8 @@ export const api = {
   deleteThread: (threadId: string): Promise<Thread> =>
     apiClient.delete(`/chats/threads/${threadId}`),
 
-  // Learned Patterns
-  addPattern: ({
+  // Saved Queries
+  addSavedQuery: ({
     connectionId,
     question,
     query,
@@ -148,20 +148,20 @@ export const api = {
     connectionId: string;
     question: string;
     query: string;
-  }): Promise<LearnedPattern> =>
-    apiClient.post("/patterns", {
+  }): Promise<SavedQuery> =>
+    apiClient.post("/saved-queries", {
       connectionId,
       question,
       query,
     }),
 
-  getPatterns: (connectionId: string): Promise<LearnedPattern[]> =>
-    apiClient.get(`/patterns/${connectionId}`),
+  getSavedQueries: (connectionId: string): Promise<SavedQuery[]> =>
+    apiClient.get(`/saved-queries/${connectionId}`),
 
-  deletePattern: (id: string): Promise<LearnedPattern> =>
-    apiClient.delete(`/patterns/${id}`),
+  deleteSavedQuery: (id: string): Promise<SavedQuery> =>
+    apiClient.delete(`/saved-queries/${id}`),
 
-  updatePattern: ({
+  updateSavedQuery: ({
     id,
     question,
     query,
@@ -169,6 +169,6 @@ export const api = {
     id: string;
     question?: string;
     query?: string;
-  }): Promise<LearnedPattern> =>
-    apiClient.patch(`/patterns/${id}`, { question, query }),
+  }): Promise<SavedQuery> =>
+    apiClient.patch(`/saved-queries/${id}`, { question, query }),
 };

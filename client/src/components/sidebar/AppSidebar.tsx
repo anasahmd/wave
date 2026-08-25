@@ -13,7 +13,7 @@ import {
 } from "../ui/sidebar";
 import SchemaItem from "./SchemaItem";
 import BusinessRulesItem from "./BusinessRulesItem";
-import LearnedPatternsItem from "./LearnedPatternsItem";
+import SavedQueriesItem from "./SavedQueriesItem";
 import ThreadList from "./ThreadList";
 import NewChatItem from "./NewChatItem";
 import { useConnection } from "@/providers/ConnectionProvider";
@@ -58,7 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ) : (
         <SidebarContent className="gap-1">
           <BusinessRulesItem />
-          <LearnedPatternsItem />
+          <SavedQueriesItem />
           {activeConnectionId && <NewChatItem />}
           <SchemaItem />
           <ThreadList />

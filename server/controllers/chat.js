@@ -4,9 +4,9 @@ import {
 } from '../services/chatService.js';
 import { createLLM } from '../services/llmService.js';
 import { createDbAgent, invokeAgent } from '../services/agentService.js';
-import { getRelevantPatterns } from '../services/patternService.js';
+import { getRelevantSavedQueries } from '../services/savedQueryService.js';
 import Thread from '../models/Thread.js';
-import LearnedPattern from '../models/LearnedPattern.js';
+import SavedQuery from '../models/SavedQuery.js';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 
@@ -22,8 +22,8 @@ chatController.chat = async (req, res) => {
 			userId: req.user.id,
 		});
 
-		// Retrieve top relevant learned patterns for prompt context
-		const learnedPatterns = await getRelevantPatterns({
+		// Retrieve top relevant saved queries for prompt context
+		const savedQueries = await getRelevantSavedQueries({
 			connectionId,
 			userQuestion: message,
 			topK: 3,
@@ -37,7 +37,7 @@ chatController.chat = async (req, res) => {
 			adapter,
 			schema,
 			customInstructions,
-			learnedPatterns,
+			learnedPatterns: savedQueries,
 		});
 
 		// Create or retrieve thread
@@ -68,18 +68,18 @@ chatController.chat = async (req, res) => {
 			role: 'assistant',
 			content: answer || 'Sorry, I was unable to generate a response.',
 			query_used: queryUsed,
-			patterns_used: learnedPatterns.map((p) => ({
+			saved_queries_used: savedQueries.map((p) => ({
 				id: p.id,
 				question: p.question,
 			})),
 		});
 		await thread.save();
 
-		if (learnedPatterns && learnedPatterns.length > 0) {
-			const patternIds = learnedPatterns.map((p) => p.id).filter(Boolean);
-			if (patternIds.length > 0) {
-				await LearnedPattern.updateMany(
-					{ _id: { $in: patternIds } },
+		if (savedQueries && savedQueries.length > 0) {
+			const queryIds = savedQueries.map((p) => p.id).filter(Boolean);
+			if (queryIds.length > 0) {
+				await SavedQuery.updateMany(
+					{ _id: { $in: queryIds } },
 					{ $inc: { usage_count: 1 } },
 				);
 			}

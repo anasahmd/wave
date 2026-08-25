@@ -34,7 +34,7 @@ export function createDbAgent({
 	adapter,
 	schema,
 	customInstructions = '',
-	learnedPatterns = [],
+	savedQueries = [],
 }) {
 	const {
 		name: toolName,
@@ -97,9 +97,9 @@ export function createDbAgent({
 			.trim();
 	}
 
-	const learnedPatternsSection = learnedPatterns.length
-		? `\n    ## Verified & Past Learned Patterns\n    Use these past queries as reference examples for joins, filter rules, and dialect syntax:\n` +
-			learnedPatterns
+	const savedQueriesSection = savedQueries.length
+		? `\n    ## Verified & Past Saved Queries\n    Use these past queries as reference examples for joins, filter rules, and dialect syntax:\n` +
+			savedQueries
 				.map(
 					(p) => `    - Question: "${sanitizeForPrompt(p.question)}"\n      Query: \`${sanitizeForPrompt(p.query)}\``,
 				)
@@ -123,7 +123,7 @@ export function createDbAgent({
 
     ${adapter.instructions}
     ${businessRulesSection}
-    ${learnedPatternsSection}
+    ${savedQueriesSection}
 
     ## Mandatory Query Constraints
     - **Max 50 Rows Limit**: The execution engine enforces a maximum ceiling of 50 rows per query execution.

@@ -41,3 +41,16 @@ export const createEmbeddingModel = () => {
 		},
 	});
 };
+
+export async function embedText(text) {
+	const embeddings = createEmbeddingModel();
+	if (!embeddings) {
+		throw new Error('Embedding provider is not configured.');
+	}
+	try {
+		return await embeddings.embedQuery(text);
+	} catch (err) {
+		console.error('[Embedding Error]:', err.message);
+		throw new Error('Failed to generate embedding.');
+	}
+}

@@ -4,7 +4,6 @@ import {
   Children,
   isValidElement,
   useState,
-  useMemo,
 } from "react";
 import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Download } from "lucide-react";
 import InlineChart, { type ChartType } from "./InlineChart";
@@ -85,12 +84,37 @@ const chartOptions: { type: ChartType; icon: typeof BarChart3; label: string }[]
  */
 export default function DataTableRenderer({
   children,
+  primaryKeys,
   ...props
-}: React.ComponentPropsWithoutRef<"table">) {
+}: React.ComponentPropsWithoutRef<"table"> & { primaryKeys?: Set<string> }) {
   const [activeChart, setActiveChart] = useState<ChartType | null>(null);
-  const { headers, rows } = useMemo(() => parseTableChildren(children), [children]);
+  const { headers, rows } = parseTableChildren(children);
 
-  const hasChartableData = headers.length >= 2 && rows.length >= 1;
+  // Column visibility state: PK columns start excluded, rest included
+  const [excludedCols, setExcludedCols] = useState<Set<number>>(() => {
+    const excluded = new Set<number>();
+    if (primaryKeys) {
+      headers.forEach((h, i) => {
+        if (primaryKeys.has(h.trim().toLowerCase())) excluded.add(i);
+      });
+    }
+    return excluded;
+  });
+
+  const hasToolbar = headers.length >= 2 && rows.length >= 1;
+
+  const toggleColumn = (idx: number) => {
+    setExcludedCols((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  // Filter headers/rows to only included columns for the chart
+  const filteredHeaders = headers.filter((_, i) => !excludedCols.has(i));
+  const filteredRows = rows.map((row) => row.filter((_, i) => !excludedCols.has(i)));
 
   return (
     <div className="my-3">
@@ -100,7 +124,7 @@ export default function DataTableRenderer({
       </div>
 
       {/* Toolbar */}
-      {hasChartableData && (
+      {hasToolbar && (
         <div className="mt-2 flex items-center gap-1">
           {chartOptions.map(({ type, icon: Icon, label }) => (
             <button
@@ -130,14 +154,41 @@ export default function DataTableRenderer({
         </div>
       )}
 
-      {/* Chart area */}
-      {activeChart && hasChartableData && (
+      {/* Chart area with column toggles */}
+      {activeChart && (
         <div className="mt-3 rounded-lg border border-border bg-card p-3">
-          <InlineChart
-            headers={headers}
-            rows={rows}
-            chartType={activeChart}
-          />
+          {/* Column toggle chips */}
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Columns
+            </span>
+            {headers.map((header, idx) => (
+              <button
+                key={idx}
+                onClick={() => toggleColumn(idx)}
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+                  excludedCols.has(idx)
+                    ? "border-border bg-transparent text-muted-foreground/50 line-through"
+                    : "border-primary/30 bg-primary/10 text-primary"
+                )}
+              >
+                {header}
+              </button>
+            ))}
+          </div>
+
+          {filteredHeaders.length >= 2 ? (
+            <InlineChart
+              headers={filteredHeaders}
+              rows={filteredRows}
+              chartType={activeChart}
+            />
+          ) : (
+            <p className="py-4 text-center text-xs text-muted-foreground">
+              Select at least 2 columns to render a chart.
+            </p>
+          )}
         </div>
       )}
     </div>

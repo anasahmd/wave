@@ -1,23 +1,23 @@
 import { DataSource } from 'typeorm';
 import { BaseAdapter } from './BaseAdapter.js';
-import { validateReadOnly } from '../../utils/sqlValidator.js';
+import { validateReadOnly } from '../utils/sqlValidator.js';
 
-export class PostgresAdapter extends BaseAdapter {
+export class MySQLAdapter extends BaseAdapter {
 	constructor() {
 		super();
 		this.dataSource = null;
 	}
 
 	get dialect() {
-		return 'PostgreSQL';
+		return 'MySQL';
 	}
 
 	get instructions() {
-		return `### PostgreSQL-Specific Syntax
-- Use ILIKE for case-insensitive text matching (not LIKE).
-- Use :: for type casting (e.g. column::text, column::date).
-- Use EXTRACT(field FROM column) for date parts.
-- String concatenation uses || operator.
+		return `### MySQL-Specific Syntax
+- Use LIKE with LOWER() for case-insensitive matching, or rely on the collation.
+- Use CAST(column AS type) for type casting.
+- Use backticks around reserved-word identifiers.
+- String concatenation uses CONCAT() function.
 
 ### Query Guidelines
 - Prefer explicit column names over SELECT *. Only select columns relevant to the question.
@@ -30,7 +30,7 @@ export class PostgresAdapter extends BaseAdapter {
 ### Operational Boundaries (STRICT — always apply)
 - You are a READ-ONLY assistant. Only generate SELECT queries (WITH / CTE is allowed).
 - If asked to INSERT, UPDATE, DELETE, DROP, or ALTER, politely explain that you only have read access.
-- Exclude system catalogs (information_schema, pg_catalog) and password/hash columns from your queries.
+- Exclude system catalogs (information_schema) and password/hash columns from your queries.
 - Only query tables and columns explicitly listed in the Schema above. Reject requests for anything outside it.
 
 ### Handling Bulk or "List All" Requests
@@ -44,8 +44,8 @@ export class PostgresAdapter extends BaseAdapter {
 		return {
 			name: 'execute_query',
 			description:
-				'Execute a READ-ONLY SQL SELECT query against the connected PostgreSQL database and return the result rows as JSON.',
-			paramDescription: 'A valid PostgreSQL SELECT query.',
+				'Execute a READ-ONLY SQL SELECT query against the connected MySQL database and return the result rows as JSON.',
+			paramDescription: 'A valid MySQL SELECT query.',
 		};
 	}
 
@@ -54,20 +54,8 @@ export class PostgresAdapter extends BaseAdapter {
 	}
 
 	async connect(uri) {
-		// Suppress pg-connection-string security warning by upgrading sslmode
-		try {
-			const urlObj = new URL(uri);
-			const sslmode = urlObj.searchParams.get('sslmode');
-			if (['require', 'prefer', 'verify-ca'].includes(sslmode)) {
-				urlObj.searchParams.set('sslmode', 'verify-full');
-				uri = urlObj.toString();
-			}
-		} catch {
-			// Ignore invalid URL parsing errors
-		}
-
 		this.dataSource = new DataSource({
-			type: 'postgres',
+			type: 'mysql',
 			url: uri,
 			synchronize: false,
 			logging: false,
@@ -88,30 +76,19 @@ export class PostgresAdapter extends BaseAdapter {
 		const schema = {};
 
 		try {
-			const result = await queryRunner.query(
-				`SELECT table_name FROM information_schema.tables WHERE table_schema='public';`,
-			);
-			const tables = result.map((row) => row.table_name);
+			const result = await queryRunner.query(`SHOW TABLES;`);
+			// MySQL returns rows like { Tables_in_dbname: "users" }
+			// so we grab the first value from each row
+			const tables = result.map((row) => Object.values(row)[0]);
 
 			for (const table of tables) {
-				const cols = await queryRunner.query(
-					`SELECT column_name, data_type, is_nullable,
-					 (SELECT COUNT(*) FROM information_schema.key_column_usage kcu
-					  JOIN information_schema.table_constraints tc
-					    ON kcu.constraint_name = tc.constraint_name
-					  WHERE tc.constraint_type = 'PRIMARY KEY'
-					    AND kcu.table_name = c.table_name
-					    AND kcu.column_name = c.column_name) as is_pk
-					 FROM information_schema.columns c
-					 WHERE table_name = $1
-					 ORDER BY ordinal_position;`,
-					[table],
-				);
+				// DESCRIBE is MySQL's shortcut to see column info
+				const cols = await queryRunner.query(`DESCRIBE \`${table}\`;`);
 				schema[table] = cols.map((c) => ({
-					name: c.column_name,
-					type: c.data_type,
-					nullable: c.is_nullable === 'YES',
-					primaryKey: parseInt(c.is_pk) > 0,
+					name: c.Field,
+					type: c.Type,
+					nullable: c.Null === 'YES',
+					primaryKey: c.Key === 'PRI',
 				}));
 			}
 		} finally {

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
-import type { LearnedPattern } from "@/types";
+import type { SavedQuery } from "@/types";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
 
@@ -21,11 +21,11 @@ interface PatternFormDialogProps {
   onOpenChange: (open: boolean) => void;
   connectionId: string;
   /** When provided, dialog operates in edit mode */
-  pattern?: LearnedPattern;
+  pattern?: SavedQuery;
   onSaved: () => void;
 }
 
-export default function PatternFormDialog({
+export default function SavedQueryFormDialog({
   open,
   onOpenChange,
   connectionId,
@@ -60,19 +60,19 @@ export default function PatternFormDialog({
       setIsSaving(true);
 
       if (isEditing) {
-        await api.updatePattern({
+        await api.updateSavedQuery({
           id: pattern.id,
           question: question.trim(),
           query: query.trim(),
         });
-        toast.success("Pattern updated successfully!");
+        toast.success("Query updated successfully!");
       } else {
-        await api.addPattern({
+        await api.addSavedQuery({
           connectionId,
           question: question.trim(),
           query: query.trim(),
         });
-        toast.success("Learned pattern added successfully!");
+        toast.success("Saved query added successfully!");
       }
 
       setQuestion("");
@@ -81,7 +81,7 @@ export default function PatternFormDialog({
       onSaved();
     } catch (err: any) {
       toast.error(
-        err.message || `Failed to ${isEditing ? "update" : "add"} pattern.`
+        err.message || `Failed to ${isEditing ? "update" : "add"} query.`
       );
     } finally {
       setIsSaving(false);
@@ -93,11 +93,11 @@ export default function PatternFormDialog({
       <DialogContent className="max-w-2xl rounded-lg sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Pattern" : "Add Ground-Truth Pattern"}
+            {isEditing ? "Edit Query" : "Add Saved Query"}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {isEditing
-              ? "Update the question or query for this pattern."
+              ? "Update the question or query for this saved query."
               : "Teach the AI a verified question → query mapping it should follow."}
           </DialogDescription>
         </DialogHeader>
@@ -136,7 +136,7 @@ export default function PatternFormDialog({
             />
             <Button type="submit" disabled={isSaving}>
               {isSaving && <Spinner className="mr-1 size-3.5" />}
-              {isEditing ? "Update Pattern" : "Save Pattern"}
+              {isEditing ? "Update Query" : "Save Query"}
             </Button>
           </DialogFooter>
         </form>

@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema(
 			type: String,
 			default: null,
 		},
-		patterns_used: [
+		saved_queries_used: [
 			{
 				id: String,
 				question: String,
