@@ -17,7 +17,7 @@ export async function getRelevantSavedQueries({
 		const results = await SavedQuery.aggregate([
 			{
 				$vectorSearch: {
-					index: 'pattern_vector_index',
+					index: 'saved_query_vector_index',
 					path: 'embedding',
 					queryVector: queryEmbedding,
 					numCandidates: 50,

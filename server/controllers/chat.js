@@ -37,7 +37,7 @@ chatController.chat = async (req, res) => {
 			adapter,
 			schema,
 			customInstructions,
-			learnedPatterns: savedQueries,
+			savedQueries,
 		});
 
 		// Create or retrieve thread
