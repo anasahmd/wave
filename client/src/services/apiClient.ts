@@ -121,7 +121,9 @@ export const api = {
   getThreads: (connectionId: string): Promise<Thread[]> =>
     apiClient.get(`/chats/threads/${connectionId}`),
 
-  getMessages: (threadId: string): Promise<Message[]> =>
+  getMessages: (
+    threadId: string
+  ): Promise<{ connection_id: string; messages: Message[] }> =>
     apiClient.get(`/chats/messages/${threadId}`),
 
   pinThread: (threadId: string): Promise<Thread> =>

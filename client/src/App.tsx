@@ -1,5 +1,5 @@
 import { AuthLayout } from "@/components/layouts/AuthLayout";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/auth/PrivateRoute";
@@ -17,6 +17,22 @@ export function App() {
 
         <Route
           path="/"
+          element={
+            <PrivateRoute>
+              <Navigate to="/new" replace />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/t/:threadId"
           element={
             <PrivateRoute>
               <Home />

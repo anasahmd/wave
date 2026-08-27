@@ -87,22 +87,26 @@ chatController.chat = async (req, res) => {
 
 		const assistantMessage = thread.messages[thread.messages.length - 1];
 
-		res.json({
-			message: assistantMessage.toJSON ? assistantMessage.toJSON() : assistantMessage,
-			thread: {
-				id: thread._id,
-				title: thread.title,
-				connection_id: thread.connection,
-				created_at: thread.createdAt,
-			},
-		});
+		if (!res.headersSent) {
+			res.json({
+				message: assistantMessage.toJSON ? assistantMessage.toJSON() : assistantMessage,
+				thread: {
+					id: thread._id,
+					title: thread.title,
+					connection_id: thread.connection,
+					created_at: thread.createdAt,
+				},
+			});
+		}
 	} catch (error) {
 		console.error('Chat error:', {
 			name: error.name,
 			message: error.message,
 			status: error.status,
 		});
-		res.status(500).json({ error: 'Something went wrong. Please try again.' });
+		if (!res.headersSent) {
+			res.status(500).json({ error: 'Something went wrong. Please try again.' });
+		}
 	}
 };
 
@@ -123,7 +127,10 @@ chatController.getMessages = async (req, res) => {
 	const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
 	if (!thread) return res.status(404).json({ error: 'Thread not found' });
 
-	res.json(thread.messages);
+	res.json({
+		connection_id: thread.connection,
+		messages: thread.messages,
+	});
 };
 
 chatController.togglePin = async (req, res) => {

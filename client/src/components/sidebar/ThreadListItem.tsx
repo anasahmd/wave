@@ -34,18 +34,19 @@ import type { Thread } from "@/types";
 import { useChat } from "@/providers/ChatProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "../ui/input";
 import { deleteThread as deleteThreadAction } from "@/slices/chatSlice";
 
 export default function ThreadListItem({ thread }: { thread: Thread }) {
   const {
     activeThreadId,
-    setActiveThread,
     deleteThread,
     pinThread,
     updateThreadTitle,
   } = useChat();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(thread.title);
@@ -58,6 +59,9 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
       const result = await deleteThread(thread.id);
       if (deleteThreadAction.fulfilled.match(result)) {
         setIsDeleteDialogOpen(false);
+        if (activeThreadId === thread.id) {
+          navigate("/new");
+        }
       }
     } finally {
       setIsDeleting(false);
@@ -94,8 +98,8 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
       ) : (
         <SidebarMenuItem>
           <SidebarMenuButton
+            render={<Link to={`/t/${thread.id}`} />}
             className={activeThreadId === thread.id ? "bg-accent" : ""}
-            onClick={() => setActiveThread(thread.id)}
             title={thread.title}
           >
             <span className="mr-auto">{thread.title}</span>

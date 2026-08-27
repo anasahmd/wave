@@ -29,22 +29,47 @@ export const fetchConnections = createAsyncThunk(
     let activeConnectionId: string | null = null;
 
     if (connections.length > 0) {
-      // Prefer the last-used connection saved in localStorage, fallback to first
-      const savedId = localStorage.getItem(STORAGE_KEY);
-      const target =
-        connections.find((c) => c.id === savedId) ?? connections[0];
+      // Check if URL specifies a thread (e.g. /t/:threadId) to prioritize its connection over localStorage
+      const match = window.location.pathname.match(/^\/t\/([^/]+)$/);
+      const urlThreadId = match ? match[1] : null;
+
+      let targetId: string | null = null;
+
+      if (urlThreadId) {
+        try {
+          const threadData = await api.getMessages(urlThreadId);
+          if (
+            threadData.connection_id &&
+            connections.some((c) => c.id === threadData.connection_id)
+          ) {
+            targetId = threadData.connection_id;
+          }
+        } catch {
+          // If thread fails to fetch, fallback to localStorage or default
+        }
+      }
+
+      if (!targetId) {
+        if (urlThreadId) {
+          window.history.replaceState(null, "", "/new");
+        }
+        const savedId = localStorage.getItem(STORAGE_KEY);
+        const target =
+          connections.find((c) => c.id === savedId) ?? connections[0];
+        targetId = target.id;
+      }
 
       // Update state with connections list and set switchingId so UI shows "Connecting to <target.name>..."
       dispatch(
         connectionSlice.actions.setSwitchingState({
           connections,
-          switchingId: target.id,
+          switchingId: targetId,
         })
       );
 
-      const response = await api.activateConnection(target.id);
+      const response = await api.activateConnection(targetId);
       activeSchema = response.schema;
-      activeConnectionId = target.id;
+      activeConnectionId = targetId;
     }
 
     return { connections, activeSchema, activeConnectionId };

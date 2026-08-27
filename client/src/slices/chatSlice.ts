@@ -1,4 +1,5 @@
 import { api } from "@/services/apiClient";
+import { switchConnection } from "@/slices/connectionSlice";
 import type { RootState } from "@/store";
 import type {
   ChatState,
@@ -30,9 +31,16 @@ export const fetchThreads = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   "chat/fetchMessages",
-  async (threadId: string) => {
-    const messages = await api.getMessages(threadId);
-    return messages;
+  async (threadId: string, { dispatch, getState }) => {
+    const data = await api.getMessages(threadId);
+    const state = getState() as RootState;
+    if (
+      data.connection_id &&
+      data.connection_id !== state.connection.activeConnectionId
+    ) {
+      dispatch(switchConnection(data.connection_id));
+    }
+    return data.messages;
   }
 );
 
@@ -124,20 +132,21 @@ const chatSlice = createSlice({
   extraReducers: (builder) => {
     // Fetch Threads
     builder.addCase(fetchThreads.pending, (state) => {
+      state.threads = [];
       state.isThreadsLoading = true;
-      state.activeThreadId = "";
-      state.messages = [];
     });
     builder.addCase(fetchThreads.fulfilled, (state, action) => {
       state.threads = action.payload;
       state.isThreadsLoading = false;
     });
     builder.addCase(fetchThreads.rejected, (state) => {
+      state.threads = [];
       state.isThreadsLoading = false;
     });
 
     // Fetch Messages
     builder.addCase(fetchMessages.pending, (state) => {
+      state.messages = [];
       state.status = "loading";
     });
     builder.addCase(fetchMessages.fulfilled, (state, action) => {
@@ -145,6 +154,7 @@ const chatSlice = createSlice({
       state.status = "idle";
     });
     builder.addCase(fetchMessages.rejected, (state) => {
+      state.messages = [];
       state.status = "idle";
     });
 

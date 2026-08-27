@@ -15,12 +15,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AddDatabaseDialog from "../dialogs/AddDatabaseDialog";
 import { useConnection } from "@/providers/ConnectionProvider";
 import { Spinner } from "../ui/spinner";
 
 export default function DatabaseSwitcherMenu() {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
   const {
     connections,
     activeConnection,
@@ -34,7 +36,10 @@ export default function DatabaseSwitcherMenu() {
   );
 
   const handleSwitchConnection = (id: string) => {
-    switchConnection(id);
+    if (id !== activeConnection?.id) {
+      switchConnection(id);
+      navigate("/new");
+    }
   };
 
   const [isAddDatabaseOpen, setIsAddDatabaseOpen] = useState(false);
