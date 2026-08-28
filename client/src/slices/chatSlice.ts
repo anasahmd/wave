@@ -15,8 +15,8 @@ import {
 
 const initialState: ChatState = {
   threads: [],
-  messages: [],
-  status: "idle",
+  threadsData: {},
+  isThreadsLoading: false,
 };
 
 export const fetchThreads = createAsyncThunk(
@@ -39,6 +39,16 @@ export const fetchMessages = createAsyncThunk(
       dispatch(switchConnection(data.connection_id));
     }
     return data.messages;
+  },
+  {
+    condition: (threadId, { getState }) => {
+      const state = getState() as RootState;
+      const threadData = state.chat.threadsData[threadId];
+      if (threadData && (threadData.messages.length > 0 || threadData.status === "sending")) {
+        return false;
+      }
+      return true;
+    }
   }
 );
 
@@ -72,7 +82,6 @@ export const updateThreadTitle = createAsyncThunk(
       const updatedThread = await api.updateThreadTitle({ threadId, title });
       return { updatedThread };
     } catch (err) {
-      // sending original thread in case api call fails
       return rejectWithValue({ threadId, originalThread, error: err });
     }
   }
@@ -88,24 +97,40 @@ const chatSlice = createSlice({
         state.threads.unshift(action.payload);
       }
     },
-    clearMessages: (state) => {
-      state.messages = [];
-      state.status = "idle";
+    clearNewThreadState: (state) => {
+      if (state.threadsData["new"]) {
+        delete state.threadsData["new"];
+      }
     },
     resetChat: () => initialState,
 
-    // Streaming reducers
+    migrateThreadState: (
+      state,
+      action: PayloadAction<{ oldId: string; newId: string }>
+    ) => {
+      const { oldId, newId } = action.payload;
+      if (oldId !== newId && state.threadsData[oldId]) {
+        state.threadsData[newId] = state.threadsData[oldId];
+        delete state.threadsData[oldId];
+      }
+    },
+
     startStreamingMessage: (
       state,
-      action: PayloadAction<{ userMessage: string }>
+      action: PayloadAction<{ threadId: string; userMessage: string }>
     ) => {
-      state.status = "sending";
+      const { threadId, userMessage } = action.payload;
+      if (!state.threadsData[threadId]) {
+        state.threadsData[threadId] = { messages: [], status: "idle" };
+      }
+      state.threadsData[threadId].status = "sending";
+      
       const userMsgId = crypto.randomUUID();
       const userMsg: Message = {
         id: userMsgId,
         role: "user",
         query_used: null,
-        content: action.payload.userMessage,
+        content: userMessage,
         created_at: new Date().toISOString(),
       };
       const pendingAssistantMsg: Message = {
@@ -115,56 +140,64 @@ const chatSlice = createSlice({
         content: "",
         created_at: new Date().toISOString(),
       };
-      state.messages.push(userMsg, pendingAssistantMsg);
+      state.threadsData[threadId].messages.push(userMsg, pendingAssistantMsg);
     },
 
-    appendTokenDelta: (state, action: PayloadAction<{ content: string }>) => {
-      const pendingMsg = state.messages.findLast((m) =>
-        m.id.startsWith("pending-")
-      );
-      if (pendingMsg && typeof action.payload.content === "string") {
-        pendingMsg.content += action.payload.content;
-      }
-    },
+    appendTokenDelta: (
+      state,
+      action: PayloadAction<{ threadId: string; content: string }>
+    ) => {
+      const { threadId, content } = action.payload;
+      const threadData = state.threadsData[threadId];
+      if (!threadData) return;
 
-    setStatusText: (state, action: PayloadAction<{ statusText: string }>) => {
-      const pendingMsg = state.messages.findLast((m) =>
+      const pendingMsg = threadData.messages.findLast((m) =>
         m.id.startsWith("pending-")
       );
-      if (pendingMsg) {
-        pendingMsg.statusText = action.payload.statusText;
+      if (pendingMsg && typeof content === "string") {
+        pendingMsg.content += content;
       }
     },
 
     finishStreamingMessage: (
       state,
-      action: PayloadAction<{ message: Message }>
+      action: PayloadAction<{ threadId: string; message: Message }>
     ) => {
-      state.status = "idle";
-      const { message } = action.payload;
+      const { threadId, message } = action.payload;
+      const threadData = state.threadsData[threadId];
+      if (!threadData) return;
+
+      threadData.status = "idle";
       console.log(message);
 
-      const pendingIndex = state.messages.findLastIndex((m) =>
+      const pendingIndex = threadData.messages.findLastIndex((m) =>
         m.id.startsWith("pending-")
       );
       if (pendingIndex !== -1) {
-        state.messages[pendingIndex] = {
+        threadData.messages[pendingIndex] = {
           ...message,
-          id: state.messages[pendingIndex].id,
+          id: threadData.messages[pendingIndex].id,
         };
       } else {
-        state.messages.push(message);
+        threadData.messages.push(message);
       }
     },
 
-    cancelStreaming: (state) => {
-      state.status = "idle";
-      const pendingIndex = state.messages.findLastIndex((m) =>
+    cancelStreaming: (
+      state,
+      action: PayloadAction<{ threadId: string }>
+    ) => {
+      const { threadId } = action.payload;
+      const threadData = state.threadsData[threadId];
+      if (!threadData) return;
+
+      threadData.status = "idle";
+      const pendingIndex = threadData.messages.findLastIndex((m) =>
         m.id.startsWith("pending-")
       );
       if (pendingIndex !== -1) {
-        state.messages[pendingIndex].statusText = undefined;
-        state.messages[pendingIndex].is_aborted = true;
+        threadData.messages[pendingIndex].statusText = undefined;
+        threadData.messages[pendingIndex].is_aborted = true;
       }
     },
   },
@@ -172,34 +205,41 @@ const chatSlice = createSlice({
     // Fetch Threads
     builder.addCase(fetchThreads.pending, (state) => {
       state.threads = [];
-      state.status = "loading_threads";
+      state.isThreadsLoading = true;
     });
     builder.addCase(fetchThreads.fulfilled, (state, action) => {
       state.threads = action.payload;
-      state.status = "idle";
+      state.isThreadsLoading = false;
     });
     builder.addCase(fetchThreads.rejected, (state) => {
       state.threads = [];
-      state.status = "idle";
+      state.isThreadsLoading = false;
     });
 
     // Fetch Messages
-    builder.addCase(fetchMessages.pending, (state) => {
-      if (state.status !== "sending") {
-        state.messages = [];
-        state.status = "loading";
+    builder.addCase(fetchMessages.pending, (state, action) => {
+      const threadId = action.meta.arg;
+      if (!state.threadsData[threadId]) {
+        state.threadsData[threadId] = { messages: [], status: "loading" };
+      } else if (state.threadsData[threadId].status !== "sending") {
+        state.threadsData[threadId].status = "loading";
       }
     });
     builder.addCase(fetchMessages.fulfilled, (state, action) => {
-      if (state.status !== "sending") {
-        state.messages = action.payload;
-        state.status = "idle";
+      const threadId = action.meta.arg;
+      if (!state.threadsData[threadId]) {
+        state.threadsData[threadId] = { messages: action.payload, status: "idle" };
+      } else if (state.threadsData[threadId].status !== "sending") {
+        state.threadsData[threadId].messages = action.payload;
+        state.threadsData[threadId].status = "idle";
       }
     });
-    builder.addCase(fetchMessages.rejected, (state) => {
-      if (state.status !== "sending") {
-        state.messages = [];
-        state.status = "idle";
+    builder.addCase(fetchMessages.rejected, (state, action) => {
+      const threadId = action.meta.arg;
+      if (!state.threadsData[threadId]) {
+        state.threadsData[threadId] = { messages: [], status: "error" };
+      } else if (state.threadsData[threadId].status !== "sending") {
+        state.threadsData[threadId].status = "error";
       }
     });
 
@@ -210,6 +250,7 @@ const chatSlice = createSlice({
       if (index !== -1) {
         state.threads.splice(index, 1);
       }
+      delete state.threadsData[deletedId];
     });
 
     // Pin Thread
@@ -251,11 +292,11 @@ const chatSlice = createSlice({
 
 export const {
   addThread,
-  clearMessages,
+  clearNewThreadState,
   resetChat,
+  migrateThreadState,
   startStreamingMessage,
   appendTokenDelta,
-  setStatusText,
   finishStreamingMessage,
   cancelStreaming,
 } = chatSlice.actions;

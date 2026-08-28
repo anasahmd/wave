@@ -20,10 +20,15 @@ export interface Message {
   created_at: string;
 }
 
+export interface ThreadData {
+  messages: Message[];
+  status: "idle" | "loading" | "sending" | "error";
+}
+
 export interface ChatState {
   threads: Thread[];
-  messages: Message[];
-  status: "idle" | "loading_threads" | "loading" | "sending" | "error";
+  threadsData: Record<string, ThreadData>;
+  isThreadsLoading: boolean;
 }
 
 export interface UpdateThreadTitlePayload {

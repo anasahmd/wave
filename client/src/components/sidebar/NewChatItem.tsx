@@ -19,7 +19,7 @@ export default function NewChatItem() {
             render={<Link to="/new" />}
             tooltip="New Chat"
             title="Start New Chat"
-            className={`text-sidebar-foreground hover:bg-accent ${activeThreadId ? "" : "bg-accent"}`}
+            className={`text-sidebar-foreground hover:bg-accent ${activeThreadId === "new" ? "bg-accent" : ""}`}
           >
             <div className="flex items-center gap-2">
               <SquarePen className="size-4" />

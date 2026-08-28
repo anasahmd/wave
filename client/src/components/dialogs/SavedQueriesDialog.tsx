@@ -37,9 +37,9 @@ export default function SavedQueriesDialog({
   const [patterns, setPatterns] = useState<SavedQuery[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingPattern, setEditingPattern] = useState<
-    SavedQuery | undefined
-  >(undefined);
+  const [editingPattern, setEditingPattern] = useState<SavedQuery | undefined>(
+    undefined
+  );
 
   const loadPatterns = useCallback(async () => {
     if (!connection?.id) return;
@@ -98,9 +98,7 @@ export default function SavedQueriesDialog({
                 <BrainCircuit className="size-4" />
               </div>
               <div>
-                <DialogTitle className="text-lg">
-                  Saved Queries
-                </DialogTitle>
+                <DialogTitle className="text-lg">Saved Queries</DialogTitle>
                 <DialogDescription className="text-xs">
                   Ground-truth SQL/MQL reference patterns for{" "}
                   <strong>{connection.name}</strong>.
@@ -119,7 +117,8 @@ export default function SavedQueriesDialog({
                 <BrainCircuit className="size-8 text-muted-foreground/60" />
                 <p className="text-sm font-medium">No saved queries yet</p>
                 <p className="max-w-sm text-xs text-muted-foreground">
-                  Manually add queries here or click &quot;Save Query&quot; under any assistant response in chat.
+                  Manually add queries here or click &quot;Save Query&quot;
+                  under any assistant response in chat.
                 </p>
                 <Button
                   size="sm"
@@ -137,9 +136,12 @@ export default function SavedQueriesDialog({
                   <Card key={item.id} className="m-2 rounded-lg py-3">
                     <CardHeader className="flex items-center justify-between border-b pb-3!">
                       <div className="flex flex-col gap-1">
-                        <CardTitle className="text-sm">{item.question}</CardTitle>
+                        <CardTitle className="text-sm">
+                          {item.question}
+                        </CardTitle>
                         <span className="w-fit rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          Used {item.usage_count ?? 0} {item.usage_count === 1 ? "time" : "times"}
+                          Used {item.usage_count ?? 0}{" "}
+                          {item.usage_count === 1 ? "time" : "times"}
                         </span>
                       </div>
                       <CardAction className="flex items-center">

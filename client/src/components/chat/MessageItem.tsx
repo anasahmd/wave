@@ -8,7 +8,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible";
-import { Bookmark, BookmarkCheck, BrainCircuit, ChevronRight } from "lucide-react";
+import {
+  Bookmark,
+  BookmarkCheck,
+  BrainCircuit,
+  ChevronRight,
+} from "lucide-react";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { Marker, MarkerContent, MarkerIcon } from "../ui/marker";
@@ -19,13 +24,16 @@ import { useAppSelector } from "@/store";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
 import DataTableRenderer from "./DataTableRenderer";
+import { useChat } from "@/providers/ChatProvider";
 
 export default function MessageItem({ message }: { message: MessageType }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const { activeConnectionId, activeSchema } = useAppSelector((state) => state.connection);
-  const chatMessages = useAppSelector((state) => state.chat.messages);
+  const { activeConnectionId, activeSchema } = useAppSelector(
+    (state) => state.connection
+  );
+  const { messages: chatMessages } = useChat();
 
   const primaryKeys = (() => {
     if (!activeSchema) return new Set<string>();
@@ -85,9 +93,9 @@ export default function MessageItem({ message }: { message: MessageType }) {
 
   if (message.is_aborted) {
     return (
-      <div className="my-6 flex w-full items-center gap-4 opacity-70">
+      <div className="my-6 flex w-full items-center gap-4">
         <Separator className="flex-1" />
-        <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
+        <span className="text-xs font-medium whitespace-nowrap text-muted-foreground">
           You stopped this response
         </span>
         <Separator className="flex-1" />
@@ -129,22 +137,28 @@ export default function MessageItem({ message }: { message: MessageType }) {
             <MarkDown
               remarkPlugins={[remarkGfm]}
               components={{
-                table: (props) => <DataTableRenderer {...props} primaryKeys={primaryKeys} />,
+                table: (props) => (
+                  <DataTableRenderer {...props} primaryKeys={primaryKeys} />
+                ),
               }}
             >
               {message.content}
             </MarkDown>
           </BubbleContent>
 
-          {message.saved_queries_used && message.saved_queries_used.length > 0 && (
-            <div className="mt-2.5 flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary w-fit">
-              <BrainCircuit className="size-3.5 shrink-0 text-primary" />
-              <span>
-                Guided by query{message.saved_queries_used.length > 1 ? "s" : ""}:{" "}
-                {message.saved_queries_used.map((p) => `"${p.question}"`).join(", ")}
-              </span>
-            </div>
-          )}
+          {message.saved_queries_used &&
+            message.saved_queries_used.length > 0 && (
+              <div className="mt-2.5 flex w-fit items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                <BrainCircuit className="size-3.5 shrink-0 text-primary" />
+                <span>
+                  Guided by query
+                  {message.saved_queries_used.length > 1 ? "s" : ""}:{" "}
+                  {message.saved_queries_used
+                    .map((p) => `"${p.question}"`)
+                    .join(", ")}
+                </span>
+              </div>
+            )}
 
           {message.query_used && (
             <Collapsible className="ml-0.5">

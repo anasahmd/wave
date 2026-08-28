@@ -5,6 +5,7 @@ import {
   PinOff,
   Trash2,
   Trash2Icon,
+  Square,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import type { Thread } from "@/types";
 import { useChat } from "@/providers/ChatProvider";
+import { useAppSelector } from "@/store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -43,6 +45,7 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
     activeThreadId,
     deleteThread,
     pinThread,
+    stopGeneration,
     updateThreadTitle,
   } = useChat();
   const isMobile = useIsMobile();
@@ -85,6 +88,11 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
     }
   };
 
+  const threadStatus = useAppSelector(
+    (state) => state.chat.threadsData[thread.id]?.status
+  );
+  const isGenerating = threadStatus === "sending";
+
   return (
     <>
       {isEditing ? (
@@ -102,46 +110,62 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
             className={activeThreadId === thread.id ? "bg-accent" : ""}
             title={thread.title}
           >
-            <span className="mr-auto">{thread.title}</span>
+            <span className="mr-auto truncate">{thread.title}</span>
           </SidebarMenuButton>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <SidebarMenuAction showOnHover>
-                  <MoreHorizontal />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              }
-            />
-            <DropdownMenuContent
-              className="w-52 rounded-lg"
-              side={isMobile ? "bottom" : "right"}
-              align={isMobile ? "end" : "start"}
+
+          {isGenerating ? (
+            <SidebarMenuAction
+              className="group/action"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                stopGeneration(thread.id);
+              }}
+              title="Stop Generation"
             >
-              <DropdownMenuItem onClick={() => pinThread(thread.id)}>
-                {thread.pinned ? (
-                  <>
-                    <PinOff className="text-muted-foreground" />
-                    <span>Unpin</span>
-                  </>
-                ) : (
-                  <>
-                    <Pin className="text-muted-foreground" />
-                    <span>Pin</span>
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Pencil className="text-muted-foreground" />
-                <span>Rename</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
-                <Trash2 className="text-muted-foreground" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Spinner className="size-3 shrink-0 text-muted-foreground group-hover/action:hidden" />
+              <Square className="hidden size-3.5 fill-current text-primary group-hover/action:block" />
+            </SidebarMenuAction>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuAction showOnHover>
+                    <MoreHorizontal />
+                    <span className="sr-only">More</span>
+                  </SidebarMenuAction>
+                }
+              />
+              <DropdownMenuContent
+                className="w-52 rounded-lg"
+                side={isMobile ? "bottom" : "right"}
+                align={isMobile ? "end" : "start"}
+              >
+                <DropdownMenuItem onClick={() => pinThread(thread.id)}>
+                  {thread.pinned ? (
+                    <>
+                      <PinOff className="text-muted-foreground" />
+                      <span>Unpin</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="text-muted-foreground" />
+                      <span>Pin</span>
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Pencil className="text-muted-foreground" />
+                  <span>Rename</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+                  <Trash2 className="text-muted-foreground" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <AlertDialog
             open={isDeleteDialogOpen}

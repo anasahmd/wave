@@ -14,7 +14,7 @@ import {
 import MessageItem from "./MessageItem";
 
 export default function MessageList() {
-  const { messages, status } = useChat();
+  const { messages, status, activeThreadId } = useChat();
 
   const isPending = status === "sending";
 
@@ -45,7 +45,7 @@ export default function MessageList() {
   }
 
   return (
-    <MessageScrollerProvider defaultScrollPosition="last-anchor">
+    <MessageScrollerProvider key={activeThreadId} defaultScrollPosition="last-anchor">
       <MessageScroller className="flex-1">
         <MessageScrollerViewport className="py-10">
           <MessageScrollerContent className="mx-auto max-w-2xl">

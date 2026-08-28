@@ -1,8 +1,8 @@
-import { Button } from "@base-ui/react";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Square } from "lucide-react";
 import { useRef, useState } from "react";
 import { useChat } from "@/providers/ChatProvider";
+import { Button } from "@/components/ui/button";
 
 export default function InputBar() {
   const [message, setMessage] = useState("");
@@ -60,9 +60,9 @@ export default function InputBar() {
       {isSending ? (
         <Button
           type="button"
-          onClick={stopGeneration}
-          className="flex size-10 items-center justify-center rounded-xl bg-destructive text-destructive-foreground hover:opacity-90"
+          onClick={() => stopGeneration()}
           title="Stop generating"
+          className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"
         >
           <Square className="size-4 fill-current" />
         </Button>
