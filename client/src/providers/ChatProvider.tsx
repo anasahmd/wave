@@ -1,32 +1,29 @@
-import { useAppDispatch, useAppSelector } from "@/store";
-import type { Thread, UpdateThreadTitlePayload } from "@/types";
-import { useEffect, type ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { api } from "@/services/apiClient";
 import {
   addThread as addThreadAction,
+  appendTokenDelta,
+  cancelStreaming,
+  clearMessages,
   deleteThread as deleteThreadAction,
   fetchMessages,
   fetchThreads,
+  finishStreamingMessage,
   pinThread as pinThreadAction,
   resetChat as resetChatAction,
-  sendMessage as sendMessageAction,
-  setActiveThread as setActiveThreadAction,
+  setStatusText,
+  startStreamingMessage,
   updateThreadTitle as updateThreadTitleAction,
 } from "@/slices/chatSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import type { Thread, UpdateThreadTitlePayload } from "@/types";
+import { useEffect, useRef, type ReactNode } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function ChatProvider({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
   const { activeConnectionId } = useAppSelector((state) => state.connection);
-  const { activeThreadId } = useAppSelector((state) => state.chat);
   const { threadId: urlThreadId } = useParams<{ threadId?: string }>();
-
-  // Synchronize URL :threadId with Redux activeThreadId
-  useEffect(() => {
-    const targetThreadId = urlThreadId || "";
-    if (activeThreadId !== targetThreadId) {
-      dispatch(setActiveThreadAction(targetThreadId));
-    }
-  }, [urlThreadId, activeThreadId, dispatch]);
 
   // Fetch threads when active connection changes
   useEffect(() => {
@@ -35,12 +32,14 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [activeConnectionId, dispatch]);
 
-  // Fetch messages when active thread changes
+  // Fetch messages when URL threadId changes
   useEffect(() => {
-    if (activeThreadId) {
-      dispatch(fetchMessages(activeThreadId));
+    if (urlThreadId) {
+      dispatch(fetchMessages(urlThreadId));
+    } else {
+      dispatch(clearMessages());
     }
-  }, [activeThreadId, dispatch]);
+  }, [urlThreadId, dispatch]);
 
   return <>{children}</>;
 }
@@ -48,30 +47,78 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 export function useChat() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { threads, activeThreadId, messages, status, isThreadsLoading } =
-    useAppSelector((state) => state.chat);
+  const { threadId: urlThreadId } = useParams<{ threadId?: string }>();
+  const activeThreadId = urlThreadId || "";
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const { threads, messages, status } = useAppSelector(
+    (state) => state.chat
+  );
   const { activeConnectionId } = useAppSelector((state) => state.connection);
 
   const setActiveThread = (threadId: string) => {
-    dispatch(setActiveThreadAction(threadId));
+    if (threadId) {
+      navigate(`/t/${threadId}`);
+    } else {
+      navigate("/new");
+    }
+  };
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      dispatch(cancelStreaming());
+    }
   };
 
   const sendMessage = async (message: string) => {
-    const actionResult = await dispatch(
-      sendMessageAction({
+    if (!activeConnectionId) {
+      toast.error("No active database connection selected");
+      return;
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    dispatch(startStreamingMessage({ userMessage: message }));
+
+    try {
+      await api.streamChat({
         message,
         connectionId: activeConnectionId,
-      })
-    );
-    if (sendMessageAction.fulfilled.match(actionResult)) {
-      const { response, isNewThread } = actionResult.payload;
-      if (isNewThread && response.thread?.id) {
-        navigate(`/t/${response.thread.id}`);
+        threadId: activeThreadId || undefined,
+        signal: controller.signal,
+        onThreadCreated: ({ thread }) => {
+          dispatch(addThreadAction(thread));
+          if (thread.id && thread.id !== activeThreadId) {
+            navigate(`/t/${thread.id}`);
+          }
+        },
+        onToken: ({ content }) => {
+          dispatch(appendTokenDelta({ content }));
+        },
+        onDone: ({ message: finalMsg }) => {
+          dispatch(finishStreamingMessage({ message: finalMsg }));
+          abortControllerRef.current = null;
+        },
+        onError: () => {
+          dispatch(cancelStreaming());
+          abortControllerRef.current = null;
+        },
+      });
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        dispatch(cancelStreaming());
       }
+      abortControllerRef.current = null;
     }
   };
 
   const deleteThread = (threadId: string) => {
+    if (activeThreadId === threadId) {
+      navigate("/new");
+    }
     return dispatch(deleteThreadAction(threadId));
   };
 
@@ -96,11 +143,12 @@ export function useChat() {
     activeThreadId,
     messages,
     status,
-    isThreadsLoading,
+    isThreadsLoading: status === "loading_threads",
     setActiveThread,
     deleteThread,
     addThread,
     sendMessage,
+    stopGeneration,
     pinThread,
     updateThreadTitle,
     resetChat,

@@ -15,15 +15,15 @@ export interface Message {
   query_used: string | null;
   saved_queries_used?: SavedQueryUsed[];
   content: string;
+  statusText?: string;
+  is_aborted?: boolean;
   created_at: string;
 }
 
 export interface ChatState {
   threads: Thread[];
-  activeThreadId: string | null;
   messages: Message[];
-  status: "idle" | "loading" | "sending" | "error";
-  isThreadsLoading: boolean;
+  status: "idle" | "loading_threads" | "loading" | "sending" | "error";
 }
 
 export interface UpdateThreadTitlePayload {
@@ -34,8 +34,6 @@ export interface UpdateThreadTitlePayload {
 export type ChatAction =
   // Thread Actions
   | { type: "SET_THREADS"; payload: Thread[] }
-  | { type: "SET_THREADS_LOADING"; payload: boolean }
-  | { type: "SET_ACTIVE_THREAD"; payload: string | null }
   | { type: "ADD_THREAD"; payload: Thread }
   | { type: "DELETE_THREAD"; payload: string }
   | { type: "UPDATE_THREAD"; payload: Thread }
@@ -45,14 +43,20 @@ export type ChatAction =
   | { type: "ADD_MESSAGE"; payload: Message }
 
   // State & Status Actions
-  | { type: "SET_STATUS"; payload: "idle" | "loading" | "sending" | "error" }
+  | {
+      type: "SET_STATUS";
+      payload: "idle" | "loading_threads" | "loading" | "sending" | "error";
+    }
   | { type: "RESET_CHAT" };
 
 export interface ChatContextType extends ChatState {
+  activeThreadId: string;
+  isThreadsLoading: boolean;
   setActiveThread: (threadId: string) => void;
   deleteThread: (threadId: string) => void;
   addThread: (thread: Thread) => void;
   sendMessage: (text: string) => void;
+  stopGeneration?: () => void;
   pinThread: (threadId: string) => void;
   updateThreadTitle: (payload: UpdateThreadTitlePayload) => void;
   resetChat: () => void;

@@ -15,10 +15,8 @@ import {
 
 const initialState: ChatState = {
   threads: [],
-  activeThreadId: "",
   messages: [],
   status: "idle",
-  isThreadsLoading: false,
 };
 
 export const fetchThreads = createAsyncThunk(
@@ -41,32 +39,6 @@ export const fetchMessages = createAsyncThunk(
       dispatch(switchConnection(data.connection_id));
     }
     return data.messages;
-  }
-);
-
-export const sendMessage = createAsyncThunk(
-  "chat/sendMessage",
-  async (
-    { message, connectionId }: { message: string; connectionId: string | null },
-    { getState, rejectWithValue }
-  ) => {
-    if (!connectionId) return rejectWithValue("No active connection");
-
-    const state = (getState() as RootState).chat;
-    const currentThreadId = state.activeThreadId;
-
-    try {
-      const response = await api.chat({
-        message,
-        connectionId,
-        threadId: currentThreadId,
-      });
-      return { response, isNewThread: !currentThreadId };
-    } catch (err) {
-      return rejectWithValue(
-        (err as Error).message || "LLM connection is not enabled"
-      );
-    }
   }
 );
 
@@ -100,6 +72,7 @@ export const updateThreadTitle = createAsyncThunk(
       const updatedThread = await api.updateThreadTitle({ threadId, title });
       return { updatedThread };
     } catch (err) {
+      // sending original thread in case api call fails
       return rejectWithValue({ threadId, originalThread, error: err });
     }
   }
@@ -109,64 +82,30 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    setActiveThread: (state, action: PayloadAction<string>) => {
-      const newThreadId = action.payload;
-      const isSameThread = newThreadId === state.activeThreadId;
-      state.activeThreadId = newThreadId;
-      if (!isSameThread) {
-        state.messages = [];
-        // if newThreadId is empty, it means that we're in the new chat
-        if (newThreadId) {
-          state.status = "loading";
-        } else {
-          state.status = "idle";
-        }
+    addThread: (state, action: PayloadAction<Thread>) => {
+      const exists = state.threads.some((t) => t.id === action.payload.id);
+      if (!exists) {
+        state.threads.unshift(action.payload);
       }
     },
-    addThread: (state, action: PayloadAction<Thread>) => {
-      state.threads.unshift(action.payload);
-      state.activeThreadId = action.payload.id;
+    clearMessages: (state) => {
+      state.messages = [];
+      state.status = "idle";
     },
     resetChat: () => initialState,
-  },
-  extraReducers: (builder) => {
-    // Fetch Threads
-    builder.addCase(fetchThreads.pending, (state) => {
-      state.threads = [];
-      state.isThreadsLoading = true;
-    });
-    builder.addCase(fetchThreads.fulfilled, (state, action) => {
-      state.threads = action.payload;
-      state.isThreadsLoading = false;
-    });
-    builder.addCase(fetchThreads.rejected, (state) => {
-      state.threads = [];
-      state.isThreadsLoading = false;
-    });
 
-    // Fetch Messages
-    builder.addCase(fetchMessages.pending, (state) => {
-      state.messages = [];
-      state.status = "loading";
-    });
-    builder.addCase(fetchMessages.fulfilled, (state, action) => {
-      state.messages = action.payload;
-      state.status = "idle";
-    });
-    builder.addCase(fetchMessages.rejected, (state) => {
-      state.messages = [];
-      state.status = "idle";
-    });
-
-    // Send Message
-    builder.addCase(sendMessage.pending, (state, action) => {
+    // Streaming reducers
+    startStreamingMessage: (
+      state,
+      action: PayloadAction<{ userMessage: string }>
+    ) => {
       state.status = "sending";
       const userMsgId = crypto.randomUUID();
       const userMsg: Message = {
         id: userMsgId,
         role: "user",
         query_used: null,
-        content: action.meta.arg.message,
+        content: action.payload.userMessage,
         created_at: new Date().toISOString(),
       };
       const pendingAssistantMsg: Message = {
@@ -177,36 +116,90 @@ const chatSlice = createSlice({
         created_at: new Date().toISOString(),
       };
       state.messages.push(userMsg, pendingAssistantMsg);
-    });
-    builder.addCase(sendMessage.fulfilled, (state, action) => {
-      const { response, isNewThread } = action.payload;
-      state.status = "idle";
+    },
 
-      const pendingIndex = state.messages.findIndex((m) =>
+    appendTokenDelta: (state, action: PayloadAction<{ content: string }>) => {
+      const pendingMsg = state.messages.findLast((m) =>
+        m.id.startsWith("pending-")
+      );
+      if (pendingMsg && typeof action.payload.content === "string") {
+        pendingMsg.content += action.payload.content;
+      }
+    },
+
+    setStatusText: (state, action: PayloadAction<{ statusText: string }>) => {
+      const pendingMsg = state.messages.findLast((m) =>
+        m.id.startsWith("pending-")
+      );
+      if (pendingMsg) {
+        pendingMsg.statusText = action.payload.statusText;
+      }
+    },
+
+    finishStreamingMessage: (
+      state,
+      action: PayloadAction<{ message: Message }>
+    ) => {
+      state.status = "idle";
+      const { message } = action.payload;
+      console.log(message);
+
+      const pendingIndex = state.messages.findLastIndex((m) =>
         m.id.startsWith("pending-")
       );
       if (pendingIndex !== -1) {
-        const existingId = state.messages[pendingIndex].id;
         state.messages[pendingIndex] = {
-          ...response.message,
-          id: response.message.id || existingId,
+          ...message,
+          id: state.messages[pendingIndex].id,
         };
       } else {
-        state.messages.push(response.message);
+        state.messages.push(message);
       }
+    },
 
-      if (isNewThread && response.thread) {
-        state.threads.unshift(response.thread);
-        state.activeThreadId = response.thread.id;
-      }
-    });
-    builder.addCase(sendMessage.rejected, (state, action) => {
-      state.status = "error";
-      const index = state.messages.findIndex((m) =>
+    cancelStreaming: (state) => {
+      state.status = "idle";
+      const pendingIndex = state.messages.findLastIndex((m) =>
         m.id.startsWith("pending-")
       );
-      if (index !== -1) {
-        state.messages.splice(index, 1);
+      if (pendingIndex !== -1) {
+        state.messages[pendingIndex].statusText = undefined;
+        state.messages[pendingIndex].is_aborted = true;
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    // Fetch Threads
+    builder.addCase(fetchThreads.pending, (state) => {
+      state.threads = [];
+      state.status = "loading_threads";
+    });
+    builder.addCase(fetchThreads.fulfilled, (state, action) => {
+      state.threads = action.payload;
+      state.status = "idle";
+    });
+    builder.addCase(fetchThreads.rejected, (state) => {
+      state.threads = [];
+      state.status = "idle";
+    });
+
+    // Fetch Messages
+    builder.addCase(fetchMessages.pending, (state) => {
+      if (state.status !== "sending") {
+        state.messages = [];
+        state.status = "loading";
+      }
+    });
+    builder.addCase(fetchMessages.fulfilled, (state, action) => {
+      if (state.status !== "sending") {
+        state.messages = action.payload;
+        state.status = "idle";
+      }
+    });
+    builder.addCase(fetchMessages.rejected, (state) => {
+      if (state.status !== "sending") {
+        state.messages = [];
+        state.status = "idle";
       }
     });
 
@@ -216,10 +209,6 @@ const chatSlice = createSlice({
       const index = state.threads.findIndex((t) => t.id === deletedId);
       if (index !== -1) {
         state.threads.splice(index, 1);
-      }
-      if (state.activeThreadId === deletedId) {
-        state.activeThreadId = "";
-        state.messages = [];
       }
     });
 
@@ -260,5 +249,14 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setActiveThread, addThread, resetChat } = chatSlice.actions;
+export const {
+  addThread,
+  clearMessages,
+  resetChat,
+  startStreamingMessage,
+  appendTokenDelta,
+  setStatusText,
+  finishStreamingMessage,
+  cancelStreaming,
+} = chatSlice.actions;
 export default chatSlice.reducer;

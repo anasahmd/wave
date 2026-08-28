@@ -13,6 +13,7 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { Marker, MarkerContent, MarkerIcon } from "../ui/marker";
 import { Spinner } from "../ui/spinner";
+import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { useAppSelector } from "@/store";
 import { api } from "@/services/apiClient";
@@ -82,6 +83,18 @@ export default function MessageItem({ message }: { message: MessageType }) {
     );
   }
 
+  if (message.is_aborted) {
+    return (
+      <div className="my-6 flex w-full items-center gap-4 opacity-70">
+        <Separator className="flex-1" />
+        <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
+          You stopped this response
+        </span>
+        <Separator className="flex-1" />
+      </div>
+    );
+  }
+
   // Assistant message pending state
   if (!message.content) {
     return (
@@ -89,7 +102,9 @@ export default function MessageItem({ message }: { message: MessageType }) {
         <MarkerIcon>
           <Spinner />
         </MarkerIcon>
-        <MarkerContent className="shimmer">Generating response…</MarkerContent>
+        <MarkerContent className="shimmer">
+          {message.statusText || "Generating response…"}
+        </MarkerContent>
       </Marker>
     );
   }

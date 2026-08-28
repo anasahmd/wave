@@ -101,7 +101,8 @@ export function createDbAgent({
 		? `\n    ## Verified & Past Saved Queries\n    Use these past queries as reference examples for joins, filter rules, and dialect syntax:\n` +
 			savedQueries
 				.map(
-					(p) => `    - Question: "${sanitizeForPrompt(p.question)}"\n      Query: \`${sanitizeForPrompt(p.query)}\``,
+					(p) =>
+						`    - Question: "${sanitizeForPrompt(p.question)}"\n      Query: \`${sanitizeForPrompt(p.query)}\``,
 				)
 				.join('\n\n') +
 			'\n'
@@ -165,6 +166,79 @@ export function createDbAgent({
 	});
 }
 
+function handleAgentError(err) {
+	console.error('Agent invocation failed:', {
+		name: err.name,
+		message: err.message,
+		status: err.status,
+		code: err.code,
+	});
+
+	if (err instanceof GraphRecursionError) {
+		return {
+			answer:
+				"I couldn't complete the query because execution exceeded the maximum retry attempts. Please rephrase your request.",
+			executedQueries: [],
+		};
+	}
+
+	if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+		return {
+			answer:
+				'The request took too long and was stopped. Try a simpler question or check if your LLM server is responsive.',
+			executedQueries: [],
+		};
+	}
+
+	// Network errors are often wrapped a few levels deep (e.g. fetch failed -> ECONNREFUSED),
+	// so walk err.cause instead of only checking err.code directly.
+	let cause = err;
+	let networkCode = null;
+	while (cause) {
+		if (
+			['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET'].includes(
+				cause.code,
+			)
+		) {
+			networkCode = cause.code;
+			break;
+		}
+		cause = cause.cause;
+	}
+
+	if (networkCode) {
+		return {
+			answer:
+				"Could not reach your AI model. If you're using a local model, make sure your server is running and reachable at the configured address.",
+			executedQueries: [],
+		};
+	}
+
+	if (err.status === 401 || err.status === 403) {
+		return {
+			answer:
+				'Authentication failed with the LLM provider. Please check your API key configuration.',
+			executedQueries: [],
+		};
+	}
+
+	if (err.status === 429) {
+		return {
+			answer: "I'm getting rate limited right now, please try again shortly.",
+			executedQueries: [],
+		};
+	}
+
+	if (err.status === 529 || err.status >= 500) {
+		return {
+			answer: 'The model service is temporarily unavailable. Please try again.',
+			executedQueries: [],
+		};
+	}
+
+	throw err;
+}
+
 export async function invokeAgent({ agent, message, threadId }) {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 175 * 1000); // 2 minutes 55 second
@@ -203,78 +277,77 @@ export async function invokeAgent({ agent, message, threadId }) {
 
 		return { answer, executedQueries };
 	} catch (err) {
-		console.error('Agent invocation failed:', {
-			name: err.name,
-			message: err.message,
-			status: err.status,
-			code: err.code,
-		});
-
-		if (err instanceof GraphRecursionError) {
-			return {
-				answer:
-					"I couldn't complete the query because execution exceeded the maximum retry attempts. Please rephrase your request.",
-				executedQueries: [],
-			};
-		}
-
-		if (err.name === 'AbortError' || err.name === 'TimeoutError') {
-			return {
-				answer:
-					'The request took too long and was stopped. Try a simpler question or check if your LLM server is responsive.',
-				executedQueries: [],
-			};
-		}
-
-		// Network errors are often wrapped a few levels deep (e.g. fetch failed -> ECONNREFUSED),
-		// so walk err.cause instead of only checking err.code directly.
-		let cause = err;
-		let networkCode = null;
-		while (cause) {
-			if (
-				['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET'].includes(
-					cause.code,
-				)
-			) {
-				networkCode = cause.code;
-				break;
-			}
-			cause = cause.cause;
-		}
-
-		if (networkCode) {
-			return {
-				answer:
-					"Could not reach your AI model. If you're using a local model, make sure your server is running and reachable at the configured address.",
-				executedQueries: [],
-			};
-		}
-
-		if (err.status === 401 || err.status === 403) {
-			return {
-				answer:
-					'Authentication failed with the LLM provider. Please check your API key configuration.',
-				executedQueries: [],
-			};
-		}
-
-		if (err.status === 429) {
-			return {
-				answer: "I'm getting rate limited right now, please try again shortly.",
-				executedQueries: [],
-			};
-		}
-
-		if (err.status === 529 || err.status >= 500) {
-			return {
-				answer:
-					'The model service is temporarily unavailable. Please try again.',
-				executedQueries: [],
-			};
-		}
-
-		throw err;
+		return handleAgentError(err);
 	} finally {
 		clearTimeout(timeout);
+	}
+}
+
+export async function streamAgentEvents({
+	agent,
+	message,
+	threadId,
+	onEvent,
+	signal,
+}) {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 175 * 1000);
+	const onExternalAbort = () => controller.abort();
+
+	if (signal.aborted) {
+		onExternalAbort();
+	} else {
+		signal.addEventListener('abort', onExternalAbort);
+	}
+
+	let fullAnswer = '';
+	const executedQueries = [];
+
+	try {
+		const stream = await agent.streamEvents(
+			{ messages: [{ role: 'user', content: message }] },
+			{
+				version: 'v3',
+				configurable: { thread_id: threadId },
+				recursionLimit: 25,
+				signal: controller.signal,
+			},
+		);
+
+		await Promise.all([
+			// Final answer text
+			(async () => {
+				for await (const message of stream.messages) {
+					for await (const token of message.text) {
+						if (!token) continue;
+						fullAnswer += token;
+						onEvent({ type: 'token', content: token });
+					}
+				}
+			})(),
+			(async () => {
+				for await (const call of stream.toolCalls) {
+					if (call.input?.query) {
+						executedQueries.push(call.input.query);
+					}
+				}
+			})(),
+		]);
+
+		const executed = executedQueries.length
+			? [executedQueries[executedQueries.length - 1]]
+			: [];
+		const answer = fullAnswer || 'Sorry, I was unable to generate a response.';
+
+		onEvent({ type: 'done', executedQueries: executed });
+		return { answer, executedQueries: executed };
+	} catch (err) {
+		console.log('[abort] streamAgentEvents caught:', err.name, err.message);
+		const result = handleAgentError(err);
+		onEvent({ type: 'error', message: result.answer });
+		return result;
+	} finally {
+		clearTimeout(timeout);
+		signal.removeEventListener('abort', onExternalAbort);
 	}
 }

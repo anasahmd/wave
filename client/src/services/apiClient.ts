@@ -10,6 +10,7 @@ import type {
   Thread,
   User,
 } from "@/types";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -117,6 +118,99 @@ export const api = {
     threadId: string | null;
   }): Promise<{ message: Message; thread: Thread }> =>
     apiClient.post("/chats", { message, connectionId, threadId }),
+
+  streamChat: async ({
+    message,
+    connectionId,
+    threadId,
+    onThreadCreated,
+    onToken,
+    onDone,
+    onError,
+    signal,
+  }: {
+    message: string;
+    connectionId: string;
+    threadId?: string | null;
+    onThreadCreated: (data: { thread: Thread }) => void;
+    onToken: (data: { content: string }) => void;
+    onDone: (data: { message: Message }) => void;
+    onError: (data: { error: string }) => void;
+    signal: AbortSignal;
+  }): Promise<void> => {
+    const baseURL = import.meta.env.VITE_API_URL || "/api";
+    const token = localStorage.getItem("wave_token");
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    await fetchEventSource(`${baseURL}/chats`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        message,
+        connectionId,
+        threadId: threadId || undefined,
+      }),
+      signal,
+      async onopen(response) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem("wave_token");
+            window.dispatchEvent(new Event("auth:unauthorized"));
+          }
+          let errorMsg = "Failed to send message";
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch {
+            // ignore JSON parse error
+          }
+          throw new Error(errorMsg);
+        }
+      },
+      onmessage(ev) {
+        if (!ev.data) return;
+        try {
+          const event = JSON.parse(ev.data);
+          switch (event.type) {
+            case "thread_created":
+              onThreadCreated({ thread: event.thread });
+              break;
+            case "token":
+              onToken({ content: event.content });
+              break;
+            case "done":
+              onDone({ message: event.message });
+              break;
+            case "error":
+              toast.error(event.error || "Streaming error");
+              onError({ error: event.error || "Streaming error" });
+              break;
+            default:
+              break;
+          }
+        } catch (e) {
+          console.error("Failed to parse SSE event data:", e, ev.data);
+        }
+      },
+      onerror(err) {
+        if (signal?.aborted || err?.name === "AbortError") {
+          console.log("Stream aborted by user");
+          return;
+        }
+        const errorMsg = err?.message || "Streaming error";
+        toast.error(errorMsg);
+        onError({ error: errorMsg });
+        throw err; // throw to stop auto-retry
+      },
+    });
+  },
 
   getThreads: (connectionId: string): Promise<Thread[]> =>
     apiClient.get(`/chats/threads/${connectionId}`),

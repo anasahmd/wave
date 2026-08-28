@@ -1,15 +1,16 @@
 import { Button } from "@base-ui/react";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { useRef, useState } from "react";
 import { useChat } from "@/providers/ChatProvider";
 
 export default function InputBar() {
   const [message, setMessage] = useState("");
-  const { sendMessage, status } = useChat();
+  const { sendMessage, stopGeneration, status } = useChat();
 
-  const isPending = status === "sending" || status === "loading";
-  const isDisabled = isPending || !message.trim();
+  const isSending = status === "sending";
+  const isLoading = status === "loading";
+  const isDisabled = isLoading || isSending || !message.trim();
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
@@ -17,6 +18,10 @@ export default function InputBar() {
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSending && stopGeneration) {
+      stopGeneration();
+      return;
+    }
     if (!isDisabled) {
       sendMessage(message);
       setMessage("");
@@ -28,6 +33,10 @@ export default function InputBar() {
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
+      if (isSending && stopGeneration) {
+        stopGeneration();
+        return;
+      }
       if (!isDisabled) {
         formRef.current!.requestSubmit();
       }
@@ -48,13 +57,24 @@ export default function InputBar() {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
       />
-      <Button
-        type="submit"
-        className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={isDisabled}
-      >
-        <ArrowUp className="size-5" />
-      </Button>
+      {isSending ? (
+        <Button
+          type="button"
+          onClick={stopGeneration}
+          className="flex size-10 items-center justify-center rounded-xl bg-destructive text-destructive-foreground hover:opacity-90"
+          title="Stop generating"
+        >
+          <Square className="size-4 fill-current" />
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isDisabled}
+        >
+          <ArrowUp className="size-5" />
+        </Button>
+      )}
     </form>
   );
 }

@@ -3,19 +3,39 @@ import {
 	getOrCreateThread,
 } from '../services/chatService.js';
 import { createLLM } from '../services/llmService.js';
-import { createDbAgent, invokeAgent } from '../services/agentService.js';
+import { createDbAgent, streamAgentEvents } from '../services/agentService.js';
 import { getRelevantSavedQueries } from '../services/savedQueryService.js';
 import Thread from '../models/Thread.js';
 import SavedQuery from '../models/SavedQuery.js';
 import mongoose from 'mongoose';
-import User from '../models/User.js';
 
 const chatController = {};
 
 chatController.chat = async (req, res) => {
 	const { message, connectionId, threadId } = req.body;
+	const controller = new AbortController();
+
+	res.on('close', () => {
+		console.log('[abort] res close fired, writableEnded:', res.writableEnded);
+		if (!res.writableEnded) {
+			controller.abort();
+		}
+	});
+
 	try {
-		const user = await User.findById(req.user.id);
+		// Set SSE streaming headers
+		res.writeHead(200, {
+			'Content-Type': 'text/event-stream',
+			'Cache-Control': 'no-cache',
+			Connection: 'keep-alive',
+		});
+
+		const sendEvent = (eventData) => {
+			if (!res.writableEnded) {
+				res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+			}
+		};
+
 		// Finding the DB connection
 		const { schema, adapter, customInstructions } = await findDbConnection({
 			connectionId,
@@ -29,11 +49,8 @@ chatController.chat = async (req, res) => {
 			topK: 3,
 		});
 
-		// Invoke agent
-		const llm = createLLM();
-
 		const agent = createDbAgent({
-			model: llm,
+			model: createLLM(),
 			adapter,
 			schema,
 			customInstructions,
@@ -52,11 +69,34 @@ chatController.chat = async (req, res) => {
 		thread.messages.push({ role: 'user', content: message });
 		await thread.save();
 
-		const { answer, executedQueries } = await invokeAgent({
+		// Emit initial thread metadata event so client gets thread info right away
+		sendEvent({
+			type: 'thread_created',
+			thread: {
+				id: thread._id,
+				title: thread.title,
+				connection_id: thread.connection,
+				created_at: thread.createdAt,
+			},
+		});
+
+		// Stream tokens & tool execution events from agent
+		const { answer, executedQueries } = await streamAgentEvents({
 			agent,
 			message,
 			threadId: thread._id.toString(),
+			signal: controller.signal,
+			onEvent: (event) => {
+				// Skip raw done event so chatController can attach saved DB message to final done event
+				if (event.type === 'done') return;
+				sendEvent(event);
+			},
 		});
+
+		if (controller.signal.aborted) {
+			console.log('[abort] Request was aborted, skipping DB writes for assistant response');
+			return res.end();
+		}
 
 		// Save assistant response
 		const queryUsed =
@@ -87,62 +127,78 @@ chatController.chat = async (req, res) => {
 
 		const assistantMessage = thread.messages[thread.messages.length - 1];
 
-		if (!res.headersSent) {
-			res.json({
-				message: assistantMessage.toJSON ? assistantMessage.toJSON() : assistantMessage,
-				thread: {
-					id: thread._id,
-					title: thread.title,
-					connection_id: thread.connection,
-					created_at: thread.createdAt,
-				},
-			});
-		}
-	} catch (error) {
-		console.error('Chat error:', {
-			name: error.name,
-			message: error.message,
-			status: error.status,
+		// Emit final 'done' event with saved message and thread data
+		sendEvent({
+			type: 'done',
+			message: assistantMessage,
+			thread: {
+				id: thread._id,
+				title: thread.title,
+				connection_id: thread.connection,
+				created_at: thread.createdAt,
+			},
 		});
-		if (!res.headersSent) {
-			res.status(500).json({ error: 'Something went wrong. Please try again.' });
+
+		res.end();
+	} catch (error) {
+		console.error('Chat SSE error:', error);
+		if (!res.writableEnded) {
+			res.write(
+				`data: ${JSON.stringify({ type: 'error', error: 'Something went wrong. Please try again.' })}\n\n`,
+			);
+			res.end();
 		}
 	}
 };
 
 chatController.getThreads = async (req, res) => {
-	const { connectionId } = req.params;
-	const threads = await Thread.find({
-		connection: connectionId,
-		user: req.user.id,
-	})
-		.select('title pinned createdAt')
-		.sort({ updatedAt: -1 });
+	try {
+		const { connectionId } = req.params;
+		const threads = await Thread.find({
+			connection: connectionId,
+			user: req.user.id,
+		})
+			.select('title pinned createdAt')
+			.sort({ updatedAt: -1 });
 
-	res.json(threads);
+		res.json(threads);
+	} catch (error) {
+		console.error('Error fetching threads:', error);
+		res.status(500).json({ error: 'Failed to fetch threads' });
+	}
 };
 
 chatController.getMessages = async (req, res) => {
-	const { threadId } = req.params;
-	const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
-	if (!thread) return res.status(404).json({ error: 'Thread not found' });
+	try {
+		const { threadId } = req.params;
+		const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
+		if (!thread) return res.status(404).json({ error: 'Thread not found' });
 
-	res.json({
-		connection_id: thread.connection,
-		messages: thread.messages,
-	});
+		res.json({
+			connection_id: thread.connection,
+			messages: thread.messages,
+		});
+	} catch (error) {
+		console.error('Error fetching messages:', error);
+		res.status(500).json({ error: 'Failed to fetch messages' });
+	}
 };
 
 chatController.togglePin = async (req, res) => {
-	const { threadId } = req.params;
-	const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
+	try {
+		const { threadId } = req.params;
+		const thread = await Thread.findOne({ _id: threadId, user: req.user.id });
 
-	if (!thread) return res.status(404).json({ error: 'Thread not found' });
+		if (!thread) return res.status(404).json({ error: 'Thread not found' });
 
-	thread.pinned = !thread.pinned;
-	await thread.save();
+		thread.pinned = !thread.pinned;
+		await thread.save();
 
-	res.json(thread);
+		res.json(thread);
+	} catch (error) {
+		console.error('Error toggling pin state:', error);
+		res.status(500).json({ error: 'Failed to toggle pin state' });
+	}
 };
 
 chatController.updateThreadTitle = async (req, res) => {
