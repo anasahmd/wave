@@ -41,14 +41,15 @@ export const fetchMessages = createAsyncThunk(
     return data.messages;
   },
   {
+    // Skips the fetching if the thread's messages are already loaded
     condition: (threadId, { getState }) => {
       const state = getState() as RootState;
       const threadData = state.chat.threadsData[threadId];
-      if (threadData && (threadData.messages.length > 0 || threadData.status === "sending")) {
+      if (threadData && threadData.messages.length > 0) {
         return false;
       }
       return true;
-    }
+    },
   }
 );
 
@@ -111,7 +112,6 @@ const chatSlice = createSlice({
       const { oldId, newId } = action.payload;
       if (oldId !== newId && state.threadsData[oldId]) {
         state.threadsData[newId] = state.threadsData[oldId];
-        delete state.threadsData[oldId];
       }
     },
 
@@ -124,7 +124,7 @@ const chatSlice = createSlice({
         state.threadsData[threadId] = { messages: [], status: "idle" };
       }
       state.threadsData[threadId].status = "sending";
-      
+
       const userMsgId = crypto.randomUUID();
       const userMsg: Message = {
         id: userMsgId,
@@ -168,7 +168,6 @@ const chatSlice = createSlice({
       if (!threadData) return;
 
       threadData.status = "idle";
-      console.log(message);
 
       const pendingIndex = threadData.messages.findLastIndex((m) =>
         m.id.startsWith("pending-")
@@ -183,10 +182,7 @@ const chatSlice = createSlice({
       }
     },
 
-    cancelStreaming: (
-      state,
-      action: PayloadAction<{ threadId: string }>
-    ) => {
+    cancelStreaming: (state, action: PayloadAction<{ threadId: string }>) => {
       const { threadId } = action.payload;
       const threadData = state.threadsData[threadId];
       if (!threadData) return;
@@ -228,7 +224,10 @@ const chatSlice = createSlice({
     builder.addCase(fetchMessages.fulfilled, (state, action) => {
       const threadId = action.meta.arg;
       if (!state.threadsData[threadId]) {
-        state.threadsData[threadId] = { messages: action.payload, status: "idle" };
+        state.threadsData[threadId] = {
+          messages: action.payload,
+          status: "idle",
+        };
       } else if (state.threadsData[threadId].status !== "sending") {
         state.threadsData[threadId].messages = action.payload;
         state.threadsData[threadId].status = "idle";

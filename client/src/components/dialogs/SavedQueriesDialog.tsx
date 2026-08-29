@@ -134,7 +134,7 @@ export default function SavedQueriesDialog({
               <div className="flex flex-col gap-0.5">
                 {patterns.map((item) => (
                   <Card key={item.id} className="m-2 rounded-lg py-3">
-                    <CardHeader className="flex items-center justify-between border-b pb-3!">
+                    <CardHeader className="flex items-center justify-between border-b border-foreground/10 pb-3!">
                       <div className="flex flex-col gap-1">
                         <CardTitle className="text-sm">
                           {item.question}

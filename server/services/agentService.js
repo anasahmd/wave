@@ -160,9 +160,7 @@ export function createDbAgent({
 		tools: [queryTool],
 		checkpointer: getCheckpointer(),
 		systemPrompt,
-		middleware: [
-			summarizationMiddleware({ model, trigger: { tokens: 10000 } }),
-		],
+		middleware: [summarizationMiddleware({ model, trigger: { tokens: 4000 } })],
 	});
 }
 
@@ -279,6 +277,7 @@ export async function invokeAgent({ agent, message, threadId }) {
 	} catch (err) {
 		return handleAgentError(err);
 	} finally {
+		controller.abort();
 		clearTimeout(timeout);
 	}
 }
@@ -347,6 +346,7 @@ export async function streamAgentEvents({
 		onEvent({ type: 'error', message: result.answer });
 		return result;
 	} finally {
+		controller.abort();
 		clearTimeout(timeout);
 		signal.removeEventListener('abort', onExternalAbort);
 	}

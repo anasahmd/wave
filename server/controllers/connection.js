@@ -138,7 +138,7 @@ connectionController.activate = async (req, res) => {
 connectionController.disconnect = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const connection = await Connection.findById(id);
+		const connection = await Connection.findOne({ _id: id, user: req.user.id });
 		if (!connection) {
 			return res.status(404).json({ error: 'Connection not found' });
 		}

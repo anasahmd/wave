@@ -3,6 +3,8 @@ import Connection from '../models/Connection.js';
 import Thread from '../models/Thread.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import dbManager from '../services/dbManager.js';
+import mongoose from 'mongoose';
 
 const authController = {};
 

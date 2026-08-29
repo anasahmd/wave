@@ -53,7 +53,10 @@ savedQueryController.deleteSavedQuery = async (req, res) => {
 	const { id } = req.params;
 
 	try {
-		const savedQuery = await SavedQuery.findByIdAndDelete(id);
+		const savedQuery = await SavedQuery.findOneAndDelete({
+			_id: id,
+			user: req.user.id,
+		});
 
 		if (!savedQuery) {
 			return res.status(404).json({ error: 'Saved query not found' });
@@ -72,7 +75,7 @@ savedQueryController.updateSavedQuery = async (req, res) => {
 	const userId = req.user.id;
 
 	try {
-		const savedQuery = await SavedQuery.findById(id);
+		const savedQuery = await SavedQuery.findOne({ _id: id, user: userId });
 		if (!savedQuery) {
 			return res.status(404).json({ error: 'Saved query not found' });
 		}

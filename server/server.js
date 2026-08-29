@@ -7,8 +7,6 @@ import userRouter from './routes/user.js';
 import { authenticate } from './middleware/auth.js';
 import connectionRouter from './routes/connection.js';
 import morgan from 'morgan';
-import { createStream } from 'rotating-file-stream';
-import path from 'path';
 import chatRouter from './routes/chat.js';
 import savedQueryRouter from './routes/savedQuery.js';
 
@@ -17,16 +15,13 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 configureDB();
 
-app.use(cors());
+app.use(cors({
+	origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+}));
 app.use(express.json());
 
 //logging
-const accessLogStream = createStream('access.log', {
-	interval: '1d', // rotate daily
-	path: path.join(import.meta.dirname, 'logs'),
-});
-
-app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan('dev'));
 
 app.use('/api/auth', authRouter);
 app.use('/api/users', authenticate, userRouter);
