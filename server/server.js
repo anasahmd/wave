@@ -9,11 +9,18 @@ import connectionRouter from './routes/connection.js';
 import morgan from 'morgan';
 import chatRouter from './routes/chat.js';
 import savedQueryRouter from './routes/savedQuery.js';
+import { cleanupGuestUsers } from './jobs/guestCleanup.js';
+import { ensureVectorIndex } from './config/vectorIndex.js';
 
 const PORT = process.env.PORT || 5000;
 
 const app = express();
-configureDB();
+await configureDB();
+await ensureVectorIndex();
+
+// Guest user cleanup: run on startup + every 6 hours
+cleanupGuestUsers();
+setInterval(cleanupGuestUsers, 6 * 60 * 60 * 1000);
 
 app.use(cors({
 	origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',

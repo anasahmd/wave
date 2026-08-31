@@ -1,5 +1,6 @@
 import { generateToken } from '../middleware/auth.js';
 import Connection from '../models/Connection.js';
+import SavedQuery from '../models/SavedQuery.js';
 import Thread from '../models/Thread.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
@@ -34,7 +35,7 @@ authController.register = async (req, res) => {
 			},
 		});
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 
 		res.status(500).json({ error: 'Registration Failed' });
 	}
@@ -68,7 +69,7 @@ authController.login = async (req, res) => {
 			},
 		});
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 
 		res.status(500).json({ error: 'Login Failed' });
 	}
@@ -89,7 +90,7 @@ authController.me = async (req, res) => {
 			created_at: user.createdAt,
 		});
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 
 		res.status(500).json({ error: 'Failed to fetch user data' });
 	}
@@ -115,7 +116,7 @@ authController.guestLogin = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error('Gues login failed', error);
+		console.error('Guest login failed', error);
 		res.status(500).json({ error: 'Guest login failed' });
 	}
 };
@@ -183,8 +184,11 @@ authController.deleteAccount = async (req, res) => {
 		const { password } = req.body;
 		const user = await User.findById(req.user.id);
 		if (!user) return res.status(404).json({ error: 'User not found' });
-		const valid = await bcrypt.compare(password, user.password_hash);
-		if (!valid) return res.status(400).json({ error: 'Incorrect password' });
+		const isGuest = user.email.endsWith('@wave.local');
+		if (!isGuest) {
+			const valid = await bcrypt.compare(password, user.password_hash);
+			if (!valid) return res.status(400).json({ error: 'Incorrect password' });
+		}
 		// Clean up connections, threads, checkpoints
 		const connections = await Connection.find({ user: user._id });
 		for (const conn of connections) {
@@ -213,6 +217,7 @@ authController.deleteAccount = async (req, res) => {
 			]);
 		}
 		await Connection.deleteMany({ user: user._id });
+		await SavedQuery.deleteMany({ user: user._id });
 		await user.deleteOne();
 		res.json({ message: 'Account deleted' });
 	} catch (err) {

@@ -44,7 +44,7 @@ class DBManager {
 					this.pool.delete(key);
 					this.timers.delete(key);
 				},
-				30 * 60 * 1000,
+				parseInt(process.env.CONNECTION_IDLE_TIMEOUT_MS || '1800000', 10),
 			),
 		);
 	}
@@ -93,6 +93,8 @@ class DBManager {
 			await adapter.disconnect();
 		}
 
+		clearTimeout(this.timers.get(key));
+		this.timers.delete(key);
 		this.pool.delete(key);
 	}
 }

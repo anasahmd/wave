@@ -1,4 +1,5 @@
 import Connection from '../models/Connection.js';
+import SavedQuery from '../models/SavedQuery.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
 import dbManager from '../services/dbManager.js';
 import Thread from '../models/Thread.js';
@@ -64,23 +65,28 @@ connectionController.connect = async (req, res) => {
 };
 
 connectionController.list = async (req, res) => {
-	let connections = await Connection.find({ user: req.user.id })
-		.select('name db_type custom_instructions createdAt')
-		.sort({ createdAt: -1 });
+	try {
+		let connections = await Connection.find({ user: req.user.id })
+			.select('name db_type custom_instructions createdAt')
+			.sort({ createdAt: -1 });
 
-	connections = connections.map((conn) => ({
-		id: conn._id,
-		name: conn.name,
-		db_type: conn.db_type,
-		custom_instructions: conn.custom_instructions || '',
-		createdAt: conn.createdAt,
-		is_active: dbManager.isConnected({
-			userId: req.user.id,
-			connectionId: conn._id.toString(),
-		}),
-	}));
+		connections = connections.map((conn) => ({
+			id: conn._id,
+			name: conn.name,
+			db_type: conn.db_type,
+			custom_instructions: conn.custom_instructions || '',
+			createdAt: conn.createdAt,
+			is_active: dbManager.isConnected({
+				userId: req.user.id,
+				connectionId: conn._id.toString(),
+			}),
+		}));
 
-	res.json(connections);
+		res.json(connections);
+	} catch (error) {
+		console.error('Error listing connections:', error);
+		res.status(500).json({ error: 'Failed to list connections' });
+	}
 };
 
 connectionController.activate = async (req, res) => {
@@ -168,7 +174,8 @@ connectionController.remove = async (req, res) => {
 			return res.status(404).json({ error: 'Connection not found' });
 		}
 
-		// Clean up all threads and checkpoints for this connection
+		// Clean up all threads, saved queries, and checkpoints for this connection
+		await SavedQuery.deleteMany({ connection: id });
 		const threads = await Thread.find({ connection: id }).select('_id');
 		const threadIds = threads.map((t) => t._id.toString());
 
@@ -197,13 +204,6 @@ connectionController.remove = async (req, res) => {
 connectionController.updateName = async (req, res) => {
 	const { id } = req.params;
 	const { name } = req.body;
-
-	if (!name || !name.trim())
-		return res.status(400).json({ error: 'Name is required' });
-
-	if (name.trim().length > 50) {
-		return res.status(400).json({ error: 'Name too long' });
-	}
 
 	try {
 		const updatedConnection = await Connection.findOneAndUpdate(

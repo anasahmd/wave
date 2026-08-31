@@ -1,26 +1,31 @@
 services:
   mongo:
-    image: mongo:7
+    image: mongodb/mongodb-atlas-local:8.0
     container_name: wave-mongo
+    hostname: mongo
     volumes:
       - wave_mongo_data:/data/db
+      - wave_mongo_config:/data/configdb
+      - wave_mongot_data:/data/mongot
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand("ping").ok']
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
     container_name: wave-server
-    ports:
-      - "5000:5000"
     env_file:
-      - ./server/.env
+      - ./.env
     environment:
-      - MONGO_URI=mongodb://mongo:27017/wave
+      - MONGO_URI=mongodb://mongo:27017/wave?directConnection=true
+      - CLIENT_ORIGIN=http://localhost:${WAVE_PORT:-3742}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       mongo:
         condition: service_healthy
@@ -32,10 +37,12 @@ services:
       dockerfile: Dockerfile
     container_name: wave-client
     ports:
-      - "5173:5173"
+      - '${WAVE_PORT:-3742}:80'
     depends_on:
       - server
     restart: unless-stopped
 
 volumes:
   wave_mongo_data:
+  wave_mongo_config:
+  wave_mongot_data:

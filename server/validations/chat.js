@@ -5,3 +5,11 @@ export const chatSchema = z.object({
 	connectionId: z.string().min(1, 'connectionId is required'),
 	threadId: z.string().nullable().optional(),
 });
+
+export const updateThreadTitleSchema = z.object({
+	title: z
+		.string()
+		.min(1, 'Title is required')
+		.max(100, 'Title too long')
+		.transform((v) => v.trim()),
+});

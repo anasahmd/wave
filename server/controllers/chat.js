@@ -205,13 +205,6 @@ chatController.updateThreadTitle = async (req, res) => {
 	const { threadId } = req.params;
 	const { title } = req.body;
 
-	if (!title || !title.trim())
-		return res.status(400).json({ error: 'title is required' });
-
-	if (title.trim().length > 100) {
-		return res.status(400).json({ error: 'Title too long' });
-	}
-
 	try {
 		const thread = await Thread.findOneAndUpdate(
 			{ _id: threadId, user: req.user.id },
@@ -247,7 +240,7 @@ chatController.deleteThread = async (req, res) => {
 		}
 		res.json(thread);
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 
 		res.status(500).json({ error: 'Something went wrong' });
 	}

@@ -12,8 +12,8 @@ import { Provider } from "react-redux";
 import store from "./store.ts";
 
 createRoot(document.getElementById("root")!).render(
-  <Provider store={store}>
-    <StrictMode>
+  <StrictMode>
+    <Provider store={store}>
       <ThemeProvider defaultTheme="dark" storageKey="wave-ui-theme">
         <Toaster position="bottom-center" />
         <BrowserRouter>
@@ -22,6 +22,6 @@ createRoot(document.getElementById("root")!).render(
           </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>
-    </StrictMode>
-  </Provider>
+    </Provider>
+  </StrictMode>
 );

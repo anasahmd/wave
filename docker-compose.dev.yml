@@ -1,0 +1,61 @@
+# Development compose — hot reload via bind mounts
+# Usage: docker compose -f docker-compose.dev.yml up
+#
+# First run is slower (npm install inside containers).
+# Subsequent runs are instant (node_modules persist in anonymous volumes).
+# To force a fresh install: docker compose -f docker-compose.dev.yml up --build
+
+services:
+  mongo:
+    image: mongodb/mongodb-atlas-local:8.0
+    container_name: wave-mongo
+    hostname: mongo
+    volumes:
+      - wave_mongo_data:/data/db
+      - wave_mongo_config:/data/configdb
+      - wave_mongot_data:/data/mongot
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand("ping").ok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  server:
+    image: node:20-alpine
+    container_name: wave-server-dev
+    working_dir: /app
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx nodemon server.js"
+    env_file:
+      - ./.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/wave?directConnection=true
+      - CLIENT_ORIGIN=http://localhost:5173
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '5000:5000'
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  client:
+    image: node:20-alpine
+    container_name: wave-client-dev
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx vite --host"
+    ports:
+      - '5173:5173'
+    depends_on:
+      - server
+
+volumes:
+  wave_mongo_data:
+  wave_mongo_config:
+  wave_mongot_data:

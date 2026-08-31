@@ -4,6 +4,11 @@ import z from 'zod';
 import mongoose from 'mongoose';
 import { GraphRecursionError } from '@langchain/langgraph';
 
+const MAX_QUERY_ROWS = parseInt(process.env.MAX_QUERY_ROWS || '50', 10);
+const SUMMARIZATION_TOKEN_LIMIT = parseInt(process.env.SUMMARIZATION_TOKEN_LIMIT || '4000', 10);
+const AGENT_TIMEOUT_MS = parseInt(process.env.AGENT_TIMEOUT_MS || '175000', 10);
+const AGENT_RECURSION_LIMIT = parseInt(process.env.AGENT_RECURSION_LIMIT || '25', 10);
+
 let checkpointer;
 function getCheckpointer() {
 	if (!checkpointer) {
@@ -47,23 +52,21 @@ export function createDbAgent({
 			// Each adapter validates queries differently (SQL validation vs MQL validation)
 			const validation = adapter.validateQuery(query);
 			if (!validation.valid) {
-				throw new Error(validation.reason);
+				return `Validation Error: ${validation.reason}. Please modify your query and try again.`;
 			}
 
 			try {
 				const rows = await adapter.executeQuery(query);
 
-				if (rows.length > 50) {
-					throw new Error(
-						`Query returned more than 50 rows. Please refine your query to return 50 or fewer rows (e.g. using LIMIT 50 or an aggregation).`,
-					);
+				if (rows.length > MAX_QUERY_ROWS) {
+					return `Error: Query returned more than ${MAX_QUERY_ROWS} rows. Please refine your query to return ${MAX_QUERY_ROWS} or fewer rows (e.g. using LIMIT ${MAX_QUERY_ROWS} or an aggregation).`;
 				}
 
-				if (rows.length === 50) {
+				if (rows.length === MAX_QUERY_ROWS) {
 					return JSON.stringify(
 						{
 							truncated: true,
-							note: 'Result capped at 50 rows — more matching data may exist.',
+							note: `Result capped at ${MAX_QUERY_ROWS} rows — more matching data may exist.`,
 							rows,
 						},
 						null,
@@ -73,7 +76,7 @@ export function createDbAgent({
 
 				return JSON.stringify({ truncated: false, rows }, null, 2);
 			} catch (err) {
-				throw new Error(`Query Error: ${err.message}`);
+				return `Query Error: ${err.message}. Please review the schema and your query, then try again.`;
 			}
 		},
 		{
@@ -160,7 +163,7 @@ export function createDbAgent({
 		tools: [queryTool],
 		checkpointer: getCheckpointer(),
 		systemPrompt,
-		middleware: [summarizationMiddleware({ model, trigger: { tokens: 4000 } })],
+		middleware: [summarizationMiddleware({ model, trigger: { tokens: SUMMARIZATION_TOKEN_LIMIT } })],
 	});
 }
 
@@ -239,7 +242,7 @@ function handleAgentError(err) {
 
 export async function invokeAgent({ agent, message, threadId }) {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 175 * 1000); // 2 minutes 55 second
+	const timeout = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS);
 
 	try {
 		const result = await agent.invoke(
@@ -248,7 +251,7 @@ export async function invokeAgent({ agent, message, threadId }) {
 			},
 			{
 				configurable: { thread_id: threadId },
-				recursionLimit: 25,
+				recursionLimit: AGENT_RECURSION_LIMIT,
 				signal: controller.signal,
 			},
 		);
@@ -290,7 +293,7 @@ export async function streamAgentEvents({
 	signal,
 }) {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 175 * 1000);
+	const timeout = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS);
 	const onExternalAbort = () => controller.abort();
 
 	if (signal.aborted) {
@@ -308,30 +311,44 @@ export async function streamAgentEvents({
 			{
 				version: 'v3',
 				configurable: { thread_id: threadId },
-				recursionLimit: 25,
+				recursionLimit: AGENT_RECURSION_LIMIT,
 				signal: controller.signal,
 			},
 		);
 
+		let streamError = null;
+
 		await Promise.all([
 			// Final answer text
 			(async () => {
-				for await (const message of stream.messages) {
-					for await (const token of message.text) {
-						if (!token) continue;
-						fullAnswer += token;
-						onEvent({ type: 'token', content: token });
+				try {
+					for await (const message of stream.messages) {
+						for await (const token of message.text) {
+							if (!token) continue;
+							fullAnswer += token;
+							onEvent({ type: 'token', content: token });
+						}
 					}
+				} catch (err) {
+					streamError = err;
 				}
 			})(),
 			(async () => {
-				for await (const call of stream.toolCalls) {
-					if (call.input?.query) {
-						executedQueries.push(call.input.query);
+				try {
+					for await (const call of stream.toolCalls) {
+						if (call.input?.query) {
+							executedQueries.push(call.input.query);
+						}
 					}
+				} catch (err) {
+					streamError = err;
 				}
 			})(),
 		]);
+
+		if (streamError) {
+			throw streamError;
+		}
 
 		const executed = executedQueries.length
 			? [executedQueries[executedQueries.length - 1]]

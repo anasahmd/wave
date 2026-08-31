@@ -2,7 +2,7 @@ import SavedQuery from '../models/SavedQuery.js';
 import { embedText } from './llmService.js';
 import mongoose from 'mongoose';
 
-const MIN_RELEVANCE_SCORE = 0.6;
+const MIN_RELEVANCE_SCORE = parseFloat(process.env.SAVED_QUERY_MIN_SCORE || '0.6');
 
 export async function getRelevantSavedQueries({
 	connectionId,

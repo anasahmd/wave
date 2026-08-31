@@ -1,154 +1,64 @@
-# Wave — AI Database Assistant
+# Wave (AI Database Assistant)
 
-Wave is a full-stack web application that lets you connect to your databases (PostgreSQL, MySQL, MongoDB) and query them using natural language. An AI agent translates your questions into read-only queries, executes them, and returns human-readable answers.
+Wave is a local-first web application that lets you connect to your databases (PostgreSQL, MySQL, MongoDB) and query them using natural language.
 
-## Architecture
+## Features
 
-```
-┌─────────────────┐        ┌──────────────────────────────┐
-│  React (Vite)   │◄──────►│  Express API Server          │
-│  TailwindCSS v4 │  REST  │  LangChain/LangGraph Agent   │
-│  Redux Toolkit  │        │  Mongoose (MongoDB metadata) │
-└─────────────────┘        └──────┬───────────────────────┘
-                                  │
-                    ┌─────────────┼─────────────┐
-                    ▼             ▼             ▼
-               PostgreSQL      MySQL        MongoDB
-              (user DBs)    (user DBs)    (user DBs)
-```
+- **Natural Language Queries:** Ask questions in plain English; Wave's AI agent translates them into read-only SQL/MQL and executes them.
+- **Inline Charts:** Automatic data visualization built directly into the chat interface.
+- **Pattern Learning:** Save queries so the system learns from your schema and improves future answers.
+- **Local-First & Secure:** Bring your own local LLM. Your data never leaves your machine.
 
-## Tech Stack
-
-| Layer      | Technology                                                             |
-| ---------- | ---------------------------------------------------------------------- |
-| Frontend   | React 19, Vite 8, TailwindCSS v4, Redux Toolkit                        |
-| Backend    | Node.js, Express 5, Mongoose, LangChain, LangGraph                     |
-| AI         | OpenAI-compatible API (Groq, LM Studio, etc.)                          |
-| DB Support | PostgreSQL (via TypeORM), MySQL (via TypeORM), MongoDB (native driver) |
-| Auth       | JWT, bcrypt password hashing                                           |
-| Encryption | AES-256-GCM (Cryptr) for stored connection URIs                        |
+---
 
 ## Prerequisites
 
-- **Node.js** ≥ 20
-- **MongoDB** running locally (or a remote URI)
-- **An LLM provider**: Groq API key, local LM Studio, or any OpenAI-compatible endpoint
-- _(Optional)_ Docker & Docker Compose
+- **Docker & Docker Compose**
+- **An LLM provider:** LM Studio (recommended), Ollama, or any OpenAI-compatible API.
 
-## Local Setup
+---
 
-### 1. Clone the repository
+## Installation & Setup
 
-```bash
-git clone https://github.com/your-username/wave.git
-cd wave
-```
+1. Clone the repository and configure your environment:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` to set your `JWT_SECRET`, `ENCRYPTION_KEY`, and LLM connection details. You can generate random secrets using:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
 
-### 2. Server setup
+### Development Mode (Hot Reload)
 
-```bash
-cd server
-cp .env.example .env
-# Edit .env — fill in MONGO_URI, JWT_SECRET, ENCRYPTION_KEY, and LLM config
-npm install
-npm run dev
-```
-
-**Required `.env` variables:**
-
-| Variable         | Description                              | Example                          |
-| ---------------- | ---------------------------------------- | -------------------------------- |
-| `PORT`           | Server port                              | `5000`                           |
-| `MONGO_URI`      | MongoDB connection string (app metadata) | `mongodb://localhost:27017/wave` |
-| `JWT_SECRET`     | Secret for signing JWTs                  | `a-long-random-string`           |
-| `ENCRYPTION_KEY` | Secret for encrypting stored DB URIs     | `another-long-random-string`     |
-| `LLM_BASE_URL`   | OpenAI-compatible API base URL           | `https://api.groq.com/openai/v1` |
-| `LLM_API_KEY`    | API key for the LLM provider             | `gsk_...`                        |
-| `LLM_MODEL`      | Model identifier                         | `llama-3.1-8b-instant`           |
-
-Optional LangSmith tracing variables are also supported (see `.env.example`).
-
-### 3. Client setup
+Starts the app with live hot-reloading for both the frontend (Vite) and backend (Nodemon).
 
 ```bash
-cd client
-cp .env .env.local   # or create one
-# Ensure VITE_API_URL=http://localhost:5000/api
-npm install
-npm run dev
+docker compose -f docker-compose.dev.yml up
 ```
 
-The client runs at `http://localhost:5173` by default.
+- Open **http://localhost:5173**
+- _Note: The first run will take a few minutes as it installs npm dependencies inside the containers._
 
-### 4. Using Docker (recommended)
+### Production Mode
+
+Builds the static assets and runs the app behind a Caddy reverse proxy.
 
 ```bash
-# From the project root
-docker compose up --build
+docker compose up -d --build
 ```
 
-This starts the server (port 5000), client (port 5173), and MongoDB (port 27017).
+- Open **http://localhost:3742**
 
-## Usage
+---
 
-1. **Register** or **Login as Guest**
-2. **Add a database** — paste a connection URI (`postgres://`, `mysql://`, `mongodb://`)
-3. **Ask questions** in natural language (e.g., "How many users signed up this week?")
-4. The AI agent generates and executes read-only queries, then summarises the results
+## Troubleshooting
 
-## Project Structure
-
-```
-wave/
-├── client/                  # React frontend (Vite + TailwindCSS v4)
-│   └── src/
-│       ├── components/      # UI components (sidebar, chat, settings, ui library)
-│       ├── providers/       # AuthProvider (Context), ChatProvider (Context)
-│       ├── slices/          # Redux Toolkit slices (connectionSlice)
-│       ├── reducers/        # useReducer reducers (auth, chat)
-│       ├── services/        # Axios API client
-│       ├── types/           # TypeScript interfaces
-│       └── validations/     # Zod schemas (client-side)
-├── server/                  # Express backend
-│   ├── controllers/         # Route handlers (auth, chat, connection)
-│   ├── middleware/           # JWT auth, Zod validation
-│   ├── models/              # Mongoose schemas (User, Connection, Thread)
-│   ├── routes/              # Express routers
-│   ├── services/            # Business logic
-│   │   ├── adapters/        # Database adapters (Postgres, MySQL, Mongo)
-│   │   ├── agentService.js  # LangChain agent creation & invocation
-│   │   ├── chatService.js   # Thread & connection helpers
-│   │   ├── dbManager.js     # In-memory connection pool
-│   │   └── llmService.js    # LLM factory
-│   ├── utils/               # Encryption, SQL validation
-│   └── validations/         # Zod schemas (server-side)
-└── docker-compose.yml
-```
-
-## API Endpoints
-
-| Method | Endpoint                             | Auth | Description                 |
-| ------ | ------------------------------------ | ---- | --------------------------- |
-| POST   | `/api/auth/register`                 | No   | Register a new user         |
-| POST   | `/api/auth/login`                    | No   | Login                       |
-| POST   | `/api/auth/guest`                    | No   | Guest login                 |
-| GET    | `/api/users/me`                      | Yes  | Get current user account    |
-| PUT    | `/api/users/me/password`             | Yes  | Change password             |
-| PATCH  | `/api/users/me`                      | Yes  | Update profile details      |
-| DELETE | `/api/users/me`                      | Yes  | Delete user account         |
-| POST   | `/api/connections/connect`           | Yes  | Add & connect a database    |
-| GET    | `/api/connections`                   | Yes  | List connections            |
-| POST   | `/api/connections/:id/activate`      | Yes  | Activate a connection       |
-| POST   | `/api/connections/:id/disconnect`    | Yes  | Disconnect                  |
-| DELETE | `/api/connections/:id`               | Yes  | Remove connection & data    |
-| PATCH  | `/api/connections/:id/name`          | Yes  | Rename connection           |
-| POST   | `/api/chats`                         | Yes  | Send a chat message         |
-| GET    | `/api/chats/threads/:connId`         | Yes  | List threads for connection |
-| GET    | `/api/chats/messages/:threadId`      | Yes  | Get messages in a thread    |
-| DELETE | `/api/chats/threads/:threadId`       | Yes  | Delete a thread             |
-| PATCH  | `/api/chats/threads/:threadId/pin`   | Yes  | Toggle thread pin           |
-| PATCH  | `/api/chats/threads/:threadId/title` | Yes  | Update thread title         |
+- **Linux Users:** If using a local LLM like LM Studio, you must configure the LLM server to listen on all interfaces (`0.0.0.0`) so the Docker container can reach it via `host.docker.internal`.
+- **Resetting Data:** To completely wipe your database, saved queries, and cached data, run:
+  ```bash
+  docker compose down -v
+  ```
 
 ## License
-
-GPLv2
+[MIT](LICENSE)

@@ -1,0 +1,16 @@
+:80 {
+	root * /srv
+
+	# Proxy API requests to backend server
+	handle /api/* {
+		reverse_proxy server:5000 {
+			flush_interval -1
+		}
+	}
+
+	# Serve frontend static assets & handle SPA fallback
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}
