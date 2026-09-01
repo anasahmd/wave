@@ -12,7 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import type { Connection } from "@/types";
 import { useConnection } from "@/providers/ConnectionProvider";
+import { updateConnectionInstructions as updateConnectionInstructionsAction } from "@/slices/connectionSlice";
 import { FileText } from "lucide-react";
+import { toast } from "sonner";
 
 interface BusinessRulesDialogProps {
   open: boolean;
@@ -41,12 +43,17 @@ export default function BusinessRulesDialog({
 
   const handleSave = async () => {
     setIsSaving(true);
-    await updateConnectionInstructions({
+    const result = await updateConnectionInstructions({
       id: connection.id,
       custom_instructions: instructions,
     });
     setIsSaving(false);
-    onOpenChange(false);
+    if (updateConnectionInstructionsAction.fulfilled.match(result)) {
+      toast.success("Business rules saved successfully");
+      onOpenChange(false);
+    } else {
+      toast.error("Failed to save business rules");
+    }
   };
 
   return (

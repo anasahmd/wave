@@ -96,7 +96,7 @@ export default function MessageItem({ message }: { message: MessageType }) {
       <div className="my-6 flex w-full items-center gap-4">
         <Separator className="flex-1" />
         <span className="text-xs font-medium whitespace-nowrap text-muted-foreground">
-          You stopped this response
+          This generation was stopped.
         </span>
         <Separator className="flex-1" />
       </div>

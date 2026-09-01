@@ -147,11 +147,11 @@ export function useChat() {
   };
 
   const pinThread = (threadId: string) => {
-    dispatch(pinThreadAction(threadId));
+    return dispatch(pinThreadAction(threadId));
   };
 
   const updateThreadTitle = (payload: UpdateThreadTitlePayload) => {
-    dispatch(updateThreadTitleAction(payload));
+    return dispatch(updateThreadTitleAction(payload));
   };
 
   const resetChat = () => {

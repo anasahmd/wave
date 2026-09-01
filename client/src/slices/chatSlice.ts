@@ -1,5 +1,5 @@
 import { api } from "@/services/apiClient";
-import { switchConnection } from "@/slices/connectionSlice";
+import { addConnection, removeConnection, switchConnection } from "@/slices/connectionSlice";
 import type { RootState } from "@/store";
 import type {
   ChatState,
@@ -23,7 +23,7 @@ export const fetchThreads = createAsyncThunk(
   "chat/fetchThreads",
   async (connectionId: string) => {
     const threads = await api.getThreads(connectionId);
-    return threads;
+    return threads.map((t: Thread) => ({ ...t, connection_id: connectionId }));
   }
 );
 
@@ -201,6 +201,7 @@ const chatSlice = createSlice({
     // Fetch Threads
     builder.addCase(fetchThreads.pending, (state) => {
       state.threads = [];
+      state.threadsData = {};
       state.isThreadsLoading = true;
     });
     builder.addCase(fetchThreads.fulfilled, (state, action) => {
@@ -285,6 +286,26 @@ const chatSlice = createSlice({
           state.threads[index] = payload.originalThread;
         }
       }
+    });
+    // Delete Connection - clear related chat state robustly
+    builder.addCase(removeConnection.fulfilled, (state, action) => {
+      const deletedConnectionId = action.payload.id;
+
+      // Clear threads if they belong to the deleted connection
+      if (
+        state.threads.length > 0 &&
+        state.threads[0].connection_id === deletedConnectionId
+      ) {
+        state.threads = [];
+        state.threadsData = {};
+      }
+    });
+
+    // New Connection - reset chat state
+    builder.addCase(addConnection.fulfilled, (state) => {
+      state.threads = [];
+      state.threadsData = {};
+      state.isThreadsLoading = false;
     });
   },
 });

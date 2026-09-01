@@ -31,6 +31,8 @@ const connectionSchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
+connectionSchema.index({ user: 1, name: 1 }, { unique: true });
+
 connectionSchema.set('toJSON', {
 	transform: (document, returnedObject) => {
 		returnedObject.id = returnedObject._id.toString();

@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -16,6 +17,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { addDatabaseSchema } from "@/validations/database";
 import { addConnection as addConnectionAction } from "@/slices/connectionSlice";
 import { useConnection } from "@/providers/ConnectionProvider";
+import { toast } from "sonner";
 
 interface AddDatabaseDialogProps {
   open: boolean;
@@ -27,6 +29,7 @@ export default function AddDatabaseDialog({
   onOpenChange,
 }: AddDatabaseDialogProps) {
   const { addConnection } = useConnection();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(addDatabaseSchema),
@@ -41,8 +44,10 @@ export default function AddDatabaseDialog({
   const onSubmit = async ({ name, uri }: { name: string; uri: string }) => {
     const result = await addConnection({ name, uri });
     if (addConnectionAction.fulfilled.match(result)) {
+      toast.success("Database added successfully");
       onOpenChange(false);
       form.reset({ name: "", uri: "" });
+      navigate("/new");
     }
   };
 

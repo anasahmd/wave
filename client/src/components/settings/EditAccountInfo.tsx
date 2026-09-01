@@ -4,6 +4,8 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
 
+import { toast } from "sonner";
+
 export default function EditAccountInfo() {
   const { user, updateProfile } = useAuth();
   const [name, setName] = useState(user?.name ?? "");
@@ -19,6 +21,7 @@ export default function EditAccountInfo() {
     setSaving(true);
     try {
       await updateProfile({ name: name.trim(), email: email.trim() });
+      toast.success("Profile updated successfully");
     } catch {
       // Error toasted by axios interceptor
     } finally {

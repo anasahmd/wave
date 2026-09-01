@@ -113,18 +113,14 @@ export const addConnection = createAsyncThunk(
 export const updateConnectionName = createAsyncThunk(
   "connection/update",
   async (
-    { id, name }: { id: string; name: string },
-    { getState, rejectWithValue }
+    { id, name, previousName }: { id: string; name: string; previousName: string },
+    { rejectWithValue }
   ) => {
-    const state = getState() as RootState;
-    const existing = state.connection.connections.find((c) => c.id === id);
-    const previousName = existing?.name;
-
     try {
       const updatedConnection = await api.updateConnectionName({ id, name });
       return { updatedConnection };
     } catch (err) {
-      return rejectWithValue({ id, previousName, error: err });
+      return rejectWithValue(err instanceof Error ? err.message : String(err));
     }
   }
 );
@@ -230,13 +226,10 @@ const connectionSlice = createSlice({
     });
 
     builder.addCase(updateConnectionName.rejected, (state, action) => {
-      const payload = action.payload as
-        { id: string; previousName?: string } | undefined;
-      if (payload?.id && payload.previousName !== undefined) {
-        const index = state.connections.findIndex((c) => c.id === payload.id);
-        if (index !== -1) {
-          state.connections[index].name = payload.previousName;
-        }
+      const { id, previousName } = action.meta.arg;
+      const index = state.connections.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        state.connections[index].name = previousName;
       }
     });
 

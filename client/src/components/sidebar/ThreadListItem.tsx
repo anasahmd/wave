@@ -38,7 +38,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "../ui/input";
-import { deleteThread as deleteThreadAction } from "@/slices/chatSlice";
+import { toast } from "sonner";
+import {
+  deleteThread as deleteThreadAction,
+  updateThreadTitle as updateThreadTitleAction,
+  pinThread as pinThreadAction,
+} from "@/slices/chatSlice";
 
 export default function ThreadListItem({ thread }: { thread: Thread }) {
   const {
@@ -61,13 +66,25 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
     try {
       const result = await deleteThread(thread.id);
       if (deleteThreadAction.fulfilled.match(result)) {
+        toast.success("Chat deleted successfully");
         setIsDeleteDialogOpen(false);
         if (activeThreadId === thread.id) {
           navigate("/new");
         }
+      } else {
+        toast.error("Failed to delete chat");
       }
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleTogglePin = async () => {
+    const result = await pinThread(thread.id);
+    if (pinThreadAction.fulfilled.match(result)) {
+      toast.success(thread.pinned ? "Chat unpinned" : "Chat pinned");
+    } else {
+      toast.error("Failed to pin/unpin chat");
     }
   };
 
@@ -79,7 +96,16 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
       setEditedTitle(thread.title);
       return;
     }
-    updateThreadTitle({ threadId: thread.id, title: trimmed });
+    const result = await updateThreadTitle({
+      threadId: thread.id,
+      title: trimmed,
+    });
+    if (updateThreadTitleAction.fulfilled.match(result)) {
+      toast.success("Chat renamed successfully");
+    } else {
+      toast.error("Failed to rename chat");
+      setEditedTitle(thread.title);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -141,7 +167,7 @@ export default function ThreadListItem({ thread }: { thread: Thread }) {
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
-                <DropdownMenuItem onClick={() => pinThread(thread.id)}>
+                <DropdownMenuItem onClick={handleTogglePin}>
                   {thread.pinned ? (
                     <>
                       <PinOff className="text-muted-foreground" />

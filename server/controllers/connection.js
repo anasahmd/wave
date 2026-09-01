@@ -11,6 +11,11 @@ connectionController.connect = async (req, res) => {
 	try {
 		const { uri, name } = req.body;
 
+		const existingConnection = await Connection.findOne({ user: req.user.id, name: name.trim() });
+		if (existingConnection) {
+			return res.status(400).json({ error: 'A connection with this name already exists' });
+		}
+
 		// Detect DB type from URI scheme
 		let dbType;
 		if (uri.startsWith('postgres://') || uri.startsWith('postgresql://'))
@@ -60,6 +65,9 @@ connectionController.connect = async (req, res) => {
 		}
 	} catch (error) {
 		console.error('Connection error:', error);
+		if (error.code === 11000) {
+			return res.status(400).json({ error: 'A connection with this name already exists' });
+		}
 		res.status(500).json({ error: error.message || 'Failed to connect' });
 	}
 };
@@ -206,6 +214,15 @@ connectionController.updateName = async (req, res) => {
 	const { name } = req.body;
 
 	try {
+		const existingConnection = await Connection.findOne({ 
+			user: req.user.id, 
+			name: name.trim(), 
+			_id: { $ne: id } 
+		});
+		if (existingConnection) {
+			return res.status(400).json({ error: 'A connection with this name already exists' });
+		}
+
 		const updatedConnection = await Connection.findOneAndUpdate(
 			{ _id: id, user: req.user.id },
 			{ name: name.trim() },
@@ -217,6 +234,9 @@ connectionController.updateName = async (req, res) => {
 
 		res.json(updatedConnection);
 	} catch (error) {
+		if (error.code === 11000) {
+			return res.status(400).json({ error: 'A connection with this name already exists' });
+		}
 		res.status(500).json({ error: 'Failed to update connection' });
 	}
 };

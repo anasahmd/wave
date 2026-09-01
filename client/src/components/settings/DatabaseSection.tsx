@@ -17,10 +17,13 @@ import { Spinner } from "@/components/ui/spinner";
 import type { Connection } from "@/types";
 import {
   removeConnection as removeConnectionAction,
+  updateConnectionName as updateConnectionNameAction,
 } from "@/slices/connectionSlice";
+import { toast } from "sonner";
 import { useConnection } from "@/providers/ConnectionProvider";
 import AddDatabaseDialog from "../dialogs/AddDatabaseDialog";
 import BusinessRulesDialog from "../dialogs/BusinessRulesDialog";
+import { useNavigate } from "react-router-dom";
 
 export default function DatabaseSection() {
   const { connections } = useConnection();
@@ -55,7 +58,14 @@ export default function DatabaseSection() {
 }
 
 function DatabaseItem({ connection }: { connection: Connection }) {
-  const { updateConnectionName, removeConnection } = useConnection();
+  const {
+    updateConnectionName,
+    removeConnection,
+    activeConnectionId,
+    connections,
+    switchConnection,
+  } = useConnection();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(connection.name);
@@ -63,7 +73,7 @@ function DatabaseItem({ connection }: { connection: Connection }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsEditing(false);
     const trimmed = editedName.trim();
 
@@ -72,7 +82,16 @@ function DatabaseItem({ connection }: { connection: Connection }) {
       return;
     }
 
-    updateConnectionName({ id: connection.id, name: trimmed });
+    const result = await updateConnectionName({
+      id: connection.id,
+      name: trimmed,
+      previousName: connection.name,
+    });
+    if (updateConnectionNameAction.fulfilled.match(result)) {
+      toast.success("Database renamed successfully");
+    } else {
+      setEditedName(connection.name);
+    }
   };
 
   const handleRemoveConnection = async (id: string) => {
@@ -80,7 +99,17 @@ function DatabaseItem({ connection }: { connection: Connection }) {
     const result = await removeConnection(id);
     setIsDeleting(false);
     if (removeConnectionAction.fulfilled.match(result)) {
+      toast.success("Database removed successfully");
       setOpen(false);
+
+      // Switches to another connection after deleting the active one
+      if (activeConnectionId === id) {
+        const remainingConnections = connections.filter((c) => c.id !== id);
+        if (remainingConnections.length > 0) {
+          switchConnection(remainingConnections[0].id);
+        }
+        navigate("/new");
+      }
     }
   };
 

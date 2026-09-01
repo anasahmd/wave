@@ -55,7 +55,7 @@ export function useConnection() {
     return dispatch(addConnectionAction(payload));
   };
 
-  const updateConnectionName = (payload: { id: string; name: string }) => {
+  const updateConnectionName = (payload: { id: string; name: string; previousName: string }) => {
     return dispatch(updateConnectionNameAction(payload));
   };
 
