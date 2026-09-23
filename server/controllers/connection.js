@@ -65,9 +65,6 @@ connectionController.connect = async (req, res) => {
 		}
 	} catch (error) {
 		console.error('Connection error:', error);
-		if (error.code === 11000) {
-			return res.status(400).json({ error: 'A connection with this name already exists' });
-		}
 		res.status(500).json({ error: error.message || 'Failed to connect' });
 	}
 };
@@ -234,9 +231,6 @@ connectionController.updateName = async (req, res) => {
 
 		res.json(updatedConnection);
 	} catch (error) {
-		if (error.code === 11000) {
-			return res.status(400).json({ error: 'A connection with this name already exists' });
-		}
 		res.status(500).json({ error: 'Failed to update connection' });
 	}
 };

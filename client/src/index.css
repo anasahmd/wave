@@ -234,6 +234,24 @@
   background: transparent;
 }
 
+/* pending status text animation */
+@keyframes pending-text-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.pending-text-enter {
+  animation: pending-text-fade-in 400ms ease both;
+}
+
 /* shimmer */
 @property --shimmer-angle {
   syntax: "<angle>";

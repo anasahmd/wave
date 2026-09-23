@@ -113,7 +113,7 @@ export const addConnection = createAsyncThunk(
 export const updateConnectionName = createAsyncThunk(
   "connection/update",
   async (
-    { id, name, previousName }: { id: string; name: string; previousName: string },
+    { id, name }: { id: string; name: string; previousName: string },
     { rejectWithValue }
   ) => {
     try {

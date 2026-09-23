@@ -125,6 +125,7 @@ export const api = {
     threadId,
     onThreadCreated,
     onToken,
+    onStatus,
     onDone,
     onError,
     signal,
@@ -134,6 +135,7 @@ export const api = {
     threadId?: string | null;
     onThreadCreated: (data: { thread: Thread }) => void;
     onToken: (data: { content: string }) => void;
+    onStatus: (data: { text: string }) => void;
     onDone: (data: { message: Message }) => void;
     onError: (data: { error: string }) => void;
     signal: AbortSignal;
@@ -184,6 +186,9 @@ export const api = {
               break;
             case "token":
               onToken({ content: event.content });
+              break;
+            case "status":
+              onStatus({ text: event.text });
               break;
             case "done":
               onDone({ message: event.message });

@@ -1,12 +1,17 @@
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Square } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/providers/ChatProvider";
 import { Button } from "@/components/ui/button";
 
 export default function InputBar() {
   const [message, setMessage] = useState("");
-  const { sendMessage, stopGeneration, status } = useChat();
+  const { sendMessage, stopGeneration, status, activeThreadId } = useChat();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [activeThreadId]);
 
   const isSending = status === "sending";
   const isLoading = status === "loading";
@@ -50,6 +55,7 @@ export default function InputBar() {
       className="flex w-full items-center rounded-2xl border border-input bg-background px-4 focus-within:ring-2 focus-within:ring-muted"
     >
       <Textarea
+        ref={textareaRef}
         placeholder="Ask anything or generate SQL..."
         className="my-auto w-full resize-none border-0 bg-transparent py-5 shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
         rows={1}

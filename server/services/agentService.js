@@ -336,10 +336,12 @@ export async function streamAgentEvents({
 			(async () => {
 				try {
 					for await (const call of stream.toolCalls) {
+						onEvent({ type: 'status', text: 'Querying database…' });
 						if (call.input?.query) {
 							executedQueries.push(call.input.query);
 						}
 					}
+					onEvent({ type: 'status', text: 'Generating response…' });
 				} catch (err) {
 					streamError = err;
 				}

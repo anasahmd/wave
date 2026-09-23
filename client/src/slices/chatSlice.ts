@@ -182,6 +182,22 @@ const chatSlice = createSlice({
       }
     },
 
+    updateStatusText: (
+      state,
+      action: PayloadAction<{ threadId: string; text: string }>
+    ) => {
+      const { threadId, text } = action.payload;
+      const threadData = state.threadsData[threadId];
+      if (!threadData) return;
+
+      const pendingMsg = threadData.messages.findLast((m) =>
+        m.id.startsWith("pending-")
+      );
+      if (pendingMsg) {
+        pendingMsg.statusText = text;
+      }
+    },
+
     cancelStreaming: (state, action: PayloadAction<{ threadId: string }>) => {
       const { threadId } = action.payload;
       const threadData = state.threadsData[threadId];
@@ -201,7 +217,6 @@ const chatSlice = createSlice({
     // Fetch Threads
     builder.addCase(fetchThreads.pending, (state) => {
       state.threads = [];
-      state.threadsData = {};
       state.isThreadsLoading = true;
     });
     builder.addCase(fetchThreads.fulfilled, (state, action) => {
@@ -317,6 +332,7 @@ export const {
   migrateThreadState,
   startStreamingMessage,
   appendTokenDelta,
+  updateStatusText,
   finishStreamingMessage,
   cancelStreaming,
 } = chatSlice.actions;

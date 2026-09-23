@@ -19,12 +19,52 @@ import { cn } from "@/lib/utils";
 import { Marker, MarkerContent, MarkerIcon } from "../ui/marker";
 import { Spinner } from "../ui/spinner";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppSelector } from "@/store";
 import { api } from "@/services/apiClient";
 import { toast } from "sonner";
 import DataTableRenderer from "./DataTableRenderer";
 import { useChat } from "@/providers/ChatProvider";
+
+const IDLE_MESSAGES = [
+  "Generating response…",
+  "Analyzing your question…",
+  "Looking through the schema…",
+  "Thinking about the best approach…",
+  "Preparing your answer…",
+  "Working on it…",
+];
+
+const IDLE_CYCLE_MS = 4000;
+
+function PendingStatusText({ serverStatus }: { serverStatus?: string }) {
+  const [index, setIndex] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
+
+  // Reset to first idle message when server status changes
+  useEffect(() => {
+    setIndex(0);
+  }, [serverStatus]);
+
+  // Cycle idle messages only when no server-sent status
+  useEffect(() => {
+    if (serverStatus) return;
+
+    timerRef.current = setInterval(() => {
+      setIndex((prev) => (prev + 1) % IDLE_MESSAGES.length);
+    }, IDLE_CYCLE_MS);
+
+    return () => clearInterval(timerRef.current);
+  }, [serverStatus]);
+
+  const displayText = serverStatus || IDLE_MESSAGES[index];
+
+  return (
+    <span key={displayText} className="pending-text-enter">
+      {displayText}
+    </span>
+  );
+}
 
 export default function MessageItem({ message }: { message: MessageType }) {
   const [isVerifying, setIsVerifying] = useState(false);
@@ -103,15 +143,16 @@ export default function MessageItem({ message }: { message: MessageType }) {
     );
   }
 
-  // Assistant message pending state
-  if (!message.content) {
+  // Assistant message pending state — keep shimmer until visible content arrives
+  const isPending = message.id.startsWith("pending-") && !message.content?.trim();
+  if (isPending || !message.content) {
     return (
       <Marker role="status">
         <MarkerIcon>
           <Spinner />
         </MarkerIcon>
         <MarkerContent className="shimmer">
-          {message.statusText || "Generating response…"}
+          <PendingStatusText serverStatus={message.statusText} />
         </MarkerContent>
       </Marker>
     );

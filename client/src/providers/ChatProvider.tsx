@@ -12,6 +12,7 @@ import {
   pinThread as pinThreadAction,
   resetChat as resetChatAction,
   startStreamingMessage,
+  updateStatusText,
   updateThreadTitle as updateThreadTitleAction,
 } from "@/slices/chatSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -117,6 +118,9 @@ export function useChat() {
         },
         onToken: ({ content }) => {
           dispatch(appendTokenDelta({ threadId: currentThreadId, content }));
+        },
+        onStatus: ({ text }) => {
+          dispatch(updateStatusText({ threadId: currentThreadId, text }));
         },
         onDone: ({ message: finalMsg }) => {
           dispatch(finishStreamingMessage({ threadId: currentThreadId, message: finalMsg }));
