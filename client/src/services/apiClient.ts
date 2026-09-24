@@ -160,6 +160,7 @@ export const api = {
         threadId: threadId || undefined,
       }),
       signal,
+      openWhenHidden: true, // prevent re-sending POST when tab regains visibility
       async onopen(response) {
         if (!response.ok) {
           if (response.status === 401) {

@@ -5,9 +5,15 @@ import mongoose from 'mongoose';
 import { GraphRecursionError } from '@langchain/langgraph';
 
 const MAX_QUERY_ROWS = parseInt(process.env.MAX_QUERY_ROWS || '50', 10);
-const SUMMARIZATION_TOKEN_LIMIT = parseInt(process.env.SUMMARIZATION_TOKEN_LIMIT || '4000', 10);
+const SUMMARIZATION_TOKEN_LIMIT = parseInt(
+	process.env.SUMMARIZATION_TOKEN_LIMIT || '4000',
+	10,
+);
 const AGENT_TIMEOUT_MS = parseInt(process.env.AGENT_TIMEOUT_MS || '175000', 10);
-const AGENT_RECURSION_LIMIT = parseInt(process.env.AGENT_RECURSION_LIMIT || '25', 10);
+const AGENT_RECURSION_LIMIT = parseInt(
+	process.env.AGENT_RECURSION_LIMIT || '25',
+	10,
+);
 
 let checkpointer;
 function getCheckpointer() {
@@ -168,7 +174,12 @@ export function createDbAgent({
 		tools: [queryTool],
 		checkpointer: getCheckpointer(),
 		systemPrompt,
-		middleware: [summarizationMiddleware({ model, trigger: { tokens: SUMMARIZATION_TOKEN_LIMIT } })],
+		middleware: [
+			summarizationMiddleware({
+				model,
+				trigger: { tokens: SUMMARIZATION_TOKEN_LIMIT },
+			}),
+		],
 	});
 }
 
@@ -341,12 +352,10 @@ export async function streamAgentEvents({
 			(async () => {
 				try {
 					for await (const call of stream.toolCalls) {
-						onEvent({ type: 'status', text: 'Querying database…' });
 						if (call.input?.query) {
 							executedQueries.push(call.input.query);
 						}
 					}
-					onEvent({ type: 'status', text: 'Generating response…' });
 				} catch (err) {
 					streamError = err;
 				}
@@ -360,7 +369,14 @@ export async function streamAgentEvents({
 		const executed = executedQueries.length
 			? [executedQueries[executedQueries.length - 1]]
 			: [];
-		const answer = fullAnswer || 'Sorry, I was unable to generate a response.';
+
+		// If tokens weren't streamed despite the agent running, treat it as an error
+		// so the user can retry rather than seeing a blank response.
+		if (!fullAnswer) {
+			throw new Error('Something went wrong while generating the response. Please try again.');
+		}
+
+		const answer = fullAnswer;
 
 		onEvent({ type: 'done', executedQueries: executed });
 		return { answer, executedQueries: executed };
