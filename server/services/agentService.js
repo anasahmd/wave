@@ -140,6 +140,11 @@ export function createDbAgent({
     3. **Query**: Call the \`${toolName}\` tool with a single, efficient query. Select every field you intend to reference in your answer — do not join a table only to filter on it while omitting the columns you'll need to describe the results.
     4. **Summarise**: After receiving results, provide a clear natural-language answer with key numbers. Cite the specific data returned — never data you did not receive.
 
+    ## Data Freshness (STRICT)
+    - **ALWAYS execute a fresh query** for every user question, even if the same or a similar question was asked earlier in this conversation.
+    - Database data can change between messages. Never reuse, cite, or summarise results from a previous turn — they may be stale.
+    - If the user repeats a question, re-run the query and respond with the latest results.
+
     ## Response Format
     - Use a markdown table when the result has 3+ columns or 3+ rows. ALWAYS put the header separator row on its own line, exactly like this:
 
